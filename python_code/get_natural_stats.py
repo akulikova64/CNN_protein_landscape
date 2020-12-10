@@ -40,7 +40,10 @@ def get_frequencies(length, alignment):
 
   for col, sum in zip(freq, sum_list):
     for aa in col:
-      col[aa] = col[aa]/sum
+      if sum != 0:
+        col[aa] = col[aa]/sum
+      else:
+        col[aa] = 0
 
   return freq
 
@@ -64,8 +67,8 @@ def get_n_eff(entropy):
 
 
 # --------- main -------------------------
-output_path = "../data/output/natural_var_align_all.csv"
-input_path = "../data/data_all/"
+output_path = "../data/output/stats_align_second.csv"
+input_path = "../data/data_second_half/"
 
 
 #list of protein sequence alignments:
@@ -102,6 +105,7 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
         freq_list.append(freq[position][key])
       writer.writerow([str(position + 1), str(protein[0:4]).lower()] + freq_list + [str(entropy[position]), str(n_eff[position])]) 
 
+print("Saved CSV to " + output_path)
 
 
 
