@@ -27,7 +27,7 @@ output_path = "../data/output/stats_cnn.csv"
 input_path = "../data/CNN_output/"
 
 
-gene_files = os.listdir(path="./CNN_output_new")
+gene_files = os.listdir(input_path)
 
 # output CSV file with all the CNN entropy, n-eff and freq values for each of 38 proteins. 
 with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
@@ -61,4 +61,6 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
         n_eff = get_n_eff(entropy)
 
         writer.writerow([str(position), str(gene[0:4]).lower(), str(wt_aa)] + freq_list + [str(entropy), str(n_eff)]) 
+
+print("Saved CSV to " + output_path)
 
