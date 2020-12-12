@@ -30,12 +30,13 @@ for file in fileList:
   else:
     print('error in:' + file)
 '''
-#lets do MORE magic epta
-path = './CNN_output_new/'
+#
+path = '../../data/CNN_output/'
+output_path = "../../data/output/cnn_wt_max_freq.csv"
 fileList = os.listdir(path)
 aaList = ['H', 'E', 'D',  'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']
 
-with open("cnn_wt_max_freq.csv", "w", newline='\n', encoding='utf-8') as CSV_file:
+with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
   writer = csv.writer(CSV_file)
   writer.writerow(['gene', 'group', 'position', 'aa', 'freq'])
 

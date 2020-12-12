@@ -67,8 +67,8 @@ def get_n_eff(entropy):
 
 
 # --------- main -------------------------
-output_path = "../data/output/stats_align_second.csv"
-input_path = "../data/data_second_half/"
+output_path = "../data/output/stats_evolved.csv"
+input_path = "../data/data_rosetta/data_evolved/"
 
 
 #list of protein sequence alignments:

@@ -6,15 +6,21 @@ import sys
 def getMax(list):
   aaList = ['H', 'E', 'D',  'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']
   ind = 0
-  m = 0
+  max = 0
   for i in range(0,len(list)):
-    if(float(list[i]) > m):
+    if(float(list[i]) > max):
       ind = i
-      m = float(list[i])
-  return [aaList[ind], m]
+      max = float(list[i])
+  return [aaList[ind], max]
+
+
+#--------- main ------------------------------------------
+input_path_1 = "../../data/output/cnn_wt_max_freq.csv"
+input_path_2 = "../../data/output/stats_align_all.csv"
+output_path = "../../data/output/natural_max_freq.csv" 
 
 wt = {}
-with open("cnn_wt_max_freq.csv", "r", newline='\n', encoding='utf-8') as CSV_file:
+with open(input_path_1, "r", newline='\n', encoding='utf-8') as CSV_file:
   csv_reader = csv.reader(CSV_file, delimiter=',')
   # gene, group, position, aa, freq
   #  0     1        2      3    4
@@ -26,11 +32,11 @@ with open("cnn_wt_max_freq.csv", "r", newline='\n', encoding='utf-8') as CSV_fil
         gene = row[0]
       wt[row[0]][row[2]] = row[3]
 
-with open("natural_max_freq.csv", "w", newline='\n', encoding='utf-8') as CSV_file:
+with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
   writer = csv.writer(CSV_file)
   writer.writerow(['gene', 'group', 'position', 'aa', 'freq'])
 
-  with open("natural_variability_2.csv", "r", newline='\n', encoding='utf-8') as CSV_file:
+  with open(input_path_2, "r", newline='\n', encoding='utf-8') as CSV_file:
     csv_reader = csv.reader(CSV_file, delimiter=',')
     for row in csv_reader:
       if row[0] == 'position':

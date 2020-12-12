@@ -24,10 +24,10 @@ get_D_KL2 <- function(y, x) {
 }
 
 # reading csv files
-natural_var <- read.csv(file="./natural_variability_2.csv", header=TRUE, sep=",")
-natural_var_first <- read.csv(file="./natural_variability_first.csv", header=TRUE, sep=",")
-natural_var_second <- read.csv(file="./natural_variability_second.csv", header=TRUE, sep=",")
-cnn_var <- read.csv(file="./CNN_variability.csv", header=TRUE, sep=",")
+natural_var <- read.csv(file="./stats_align_all.csv", header=TRUE, sep=",")
+natural_var_first <- read.csv(file="./stats_align_first.csv", header=TRUE, sep=",")
+natural_var_second <- read.csv(file="./stats_align_second.csv", header=TRUE, sep=",")
+cnn_var <- read.csv(file="./stats_cnn.csv", header=TRUE, sep=",")
 
 # joining the two data frames for calculating the D_KL later on.
 
@@ -42,7 +42,8 @@ joined_data <- inner_join(x = natural_var, y = cnn_var, by = c('position', 'gene
 # adding a column D_KL (values calculated in function above)
 joined_data <- joined_data %>%
   rowwise() %>%
-  mutate(D_KL = get_D_KL2(as.numeric(q_natural[1,]), as.numeric(q_cnn[1,])))
+  #mutate(D_KL = get_D_KL2(as.numeric(q_natural[1,]), as.numeric(q_cnn[1,])))
+  mutate(D_KL = get_D_KL2(as.numeric(q_cnn[1,]), as.numeric(q_natural[1,])))
 
 # natural vs. natural
 natural_var_first <- natural_var_first %>%
@@ -69,6 +70,7 @@ joined_natural2$group <- 'natural'
  
 joined_for_graph <- rbind(joined_data2, joined_natural2)
 
+# finding the mean D_KL for each protein
 joined_for_graph <- joined_for_graph %>%
   group_by(gene, group) %>%
   summarize(D_KL = mean(D_KL))
@@ -83,7 +85,7 @@ joined_for_graph %>%
   ylab("Mean KL Divergence") +
   xlab("")
 
-#ploting all 38 genes
+#ploting all 38 genes (not informative)
 joined_data %>%
   ggplot(aes(x = "", y = D_KL)) +
   geom_boxplot() +
@@ -92,7 +94,8 @@ joined_data %>%
   #theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
   xlab("")
   ylab("Mean KL Divergence") 
-  
+ 
+# comparing n_eff between cnn and natural data 
 n_eff_data_1 <- joined_data %>%
   select(n_eff.x, gene, position)
 names(n_eff_data_1) <- c('n_eff', 'gene', 'position')
@@ -103,13 +106,10 @@ n_eff_data_2 <- joined_data %>%
 names(n_eff_data_2) <- c('n_eff', 'gene', 'position')
 n_eff_data_2$group <- 'predicted'
 
+
 n_eff_data <- rbind(n_eff_data_1, n_eff_data_2)
 
-n_eff_data_3 <- n_eff_data %>%
-  group_by(gene, group) %>%
-  summarize(n_eff = mean(n_eff))
-  
-n_eff_data_3 %>%
+n_eff_data %>%
   ggplot(aes(x = group, y = n_eff)) +
   geom_boxplot() +
   ggtitle(label="N-effective", subtitle = "CNN data vs. natural sequences") +
@@ -122,8 +122,8 @@ n_eff_data_3 %>%
 # Replicating results from paper
 #====================================================================================================
 
-designed <- read.csv(file="./designed.csv", header=TRUE, sep=",")
-evolved <- read.csv(file="./evolved.csv", header=TRUE, sep=",")
+designed <- read.csv(file="./stats_designed.csv", header=TRUE, sep=",")
+evolved <- read.csv(file="./stats_evolved.csv", header=TRUE, sep=",")
 
 designed <- designed %>%
   nest(q_designed = c(q_H:q_C))
@@ -199,7 +199,7 @@ joined_for_graph3 <- joined_for_graph3 %>%
 joined_for_graph3 %>%
   ggplot(aes(x = group, y = D_KL)) +
   geom_boxplot() +
-  ggtitle(label="KL-Divergence", subtitle = "designed, evolved, predicted, natural") +
+  ggtitle(label="KL-Divergence") +
   theme_cowplot() +
   theme(plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5)) +
   ylab("Mean KL Divergence") +
