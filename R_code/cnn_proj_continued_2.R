@@ -35,6 +35,7 @@ index_data <- joined_data %>%
   mutate(match = aa_predicted != aa_natural_wt) %>%
   select(gene, position, match)
 
+# selecting the data entries where the predicted amino acid matches the 
 filtered_data <- joined_data %>%
   left_join(index_data) %>%
   filter(match == TRUE) %>%
@@ -107,7 +108,7 @@ all_data <- joined_data %>%
 
 #----------------------------------------------------------------------------------------------------
 # 1) Probability of wt residue (CNN) ~ Frequency of wt residue (seq alignment)  
-goi = "1w7w"
+goi = "1b4t"
 
 #finding the linear regression
 linear_reg <- all_data %>%
@@ -126,12 +127,13 @@ all_data %>%
   ggtitle(label = goi) +
   geom_abline(slope = slope, intercept = intercept, color = "grey65" ) +
   stat_cor(label.y = 0.95, label.x = -0.1) +
-  stat_regline_equation(label.y = .9, label.x = -0.1) +
+  stat_regline_equation(label.y = .85, label.x = -0.1) +
   theme_cowplot() +
   theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
   ylab("wt frequency (alignment)") +
   xlab("wt probability (cnn)") 
 
+library(dplyr)
 cor <- all_data %>%
   select(gene, freq_wt, freq_natural_wt) %>%
   na.omit() %>%
@@ -149,7 +151,9 @@ cor %>%
 
 #---------------------------------------------------------------------------------------------
 # 2) Probability of wt residue (CNN) ~ Neff or entropy (seq alignment)
-gene_name <- "2eu8"
+
+natural_var <- read.csv(file="./stats_align_all.csv", header=TRUE, sep=",")
+gene_name <- "1w7w"
 
 index_data4 <- all_data %>%
   select(position, gene, freq_wt) %>%
@@ -178,12 +182,12 @@ index_data4 %>%
   ylab("n-eff (alignment)") +
   xlab("wt probability (cnn)") 
 
+library(dplyr)
 cor2 <- index_data4 %>%
   select(gene, freq_wt, n_eff) %>%
   na.omit() %>%
   group_by(gene) %>%
   summarize(cor = cor(freq_wt, n_eff))
-
 
 cor2 %>%
   ggplot(aes(x = "", y = cor)) +
@@ -194,11 +198,14 @@ cor2 %>%
   xlab("") +
   ylab("correlation coefficients") 
 
+  # paired sample t-test
+  t_test_1 <- t.test(before, after, paired = FALSE)
+
 #----------------------------------------------------------------------------------------------
 # 3) Probability of wt class (CNN) ~ Frequency of wt class (seq alignment)
 
-natural_var <- read.csv(file="./natural_variability_2.csv", header=TRUE, sep=",")
-cnn_var <- read.csv(file="./CNN_variability.csv", header=TRUE, sep=",")
+natural_var <- read.csv(file="./stats_align_all.csv", header=TRUE, sep=",")
+cnn_var <- read.csv(file="./stats_cnn.csv", header=TRUE, sep=",")
 
 natural_var <- natural_var %>%
   nest(q_natural = c(q_H:q_C))
@@ -206,6 +213,7 @@ natural_var <- natural_var %>%
 cnn_var <- cnn_var %>%
   nest(q_cnn = c(q_H:q_C))
 
+# looking at classes
 joined_data3 <- inner_join(x = natural_var, y = cnn_var, by = c('position', 'gene')) 
 
 #natural_var and cnn_var from variability_38_genes
@@ -538,16 +546,61 @@ cor3 %>%
   
 
 #==============================================================================
-#Tests
+#Basic stats (% match across all genes)
 #===============================================================================
 
-# correlations = c()
-# for (i in 1:length(levels(index_data4$gene))){ 
-#   genes = levels(index_data4$gene)
-#   name = levels(index_data4$gene)[i]
-#   cor = cor(index_data4[index_data4$gene == name, 3], index_data4[index_data4$gene == name, 4])
-#   correlations = c(correlations, cor)
-# }
-# name = levels(index_data4$gene)[2]
-# cor = cor(index_data4[index_data4$gene == name, 3], index_data4[index_data4$gene == name, 4])
+# check if predicted aa is the one found in the wt structure
+matches_1 <- joined_data %>%
+  pivot_wider(names_from = group, values_from = c(aa,freq)) %>%
+  mutate(match = aa_predicted == aa_wt) %>%
+  select(gene, position, match)
+
+# selecting the data entries where the predicted amino acid matches the 
+summary_stats_1 <- matches_1 %>%
+  group_by(gene, match) %>%
+  summarise(count = n()) %>%
+  mutate(freq = count / sum(count)) %>%
+  filter(match == TRUE)
+
+summary_stats_1 %>%
+  ggplot(aes(x = "", y = freq)) +
+  geom_violin(fill = "grey75") + geom_sina() +
+  ggtitle(label = "CNN Accuracy by Protein") +
+  theme_cowplot() + 
+  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
+  xlab("") +
+  ylab("Percent Accuracy \n (predicted = wt)")   
+
+summary_stats_1 %>%
+  summarise(mean = mean(freq))
+# mean = 0.713
+
+# check if predicted aa is the one found in the wt structure
+matches_2 <- joined_data %>%
+  pivot_wider(names_from = group, values_from = c(aa,freq)) %>%
+  mutate(match = aa_predicted == aa_natural_max) %>%
+  select(gene, position, match)
+
+summary_stats_2 <- matches_2 %>%
+  group_by(gene, match) %>%
+  summarise(count = n()) %>%
+  mutate(freq = count / sum(count)) %>%
+  filter(match == TRUE)
+
+summary_stats_2 %>%
+  ggplot(aes(x = "", y = freq)) +
+  geom_violin(fill = "grey75") + geom_sina() +
+  ggtitle(label = "CNN Predictions Compared to \n Alignment Consensus") +
+  theme_cowplot() + 
+  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
+  xlab("") +
+  ylab("Percent Accuracy \n (predicted = consensus)")   
+
+summary_stats_2 %>%
+  summarise(mean = mean(freq))
+# mean = 0.331
+
+
+
+
 

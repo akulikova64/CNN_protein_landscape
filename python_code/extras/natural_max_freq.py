@@ -20,26 +20,28 @@ input_path_2 = "../../data/output/stats_align_all.csv"
 output_path = "../../data/output/natural_max_freq.csv" 
 
 wt = {}
+# reading in CNN max frequencies file
 with open(input_path_1, "r", newline='\n', encoding='utf-8') as CSV_file:
   csv_reader = csv.reader(CSV_file, delimiter=',')
   # gene, group, position, aa, freq
   #  0     1        2      3    4
   gene = ""
   for row in csv_reader:
-    if row[1] == "wt":
-      if row[0] != gene:
-        wt[row[0]] = {}
-        gene = row[0]
-      wt[row[0]][row[2]] = row[3]
+    if row[1] == "wt": 
+      if row[0] != gene: # making sure we do not create multiple dicts for the same gene.  
+        wt[row[0]] = {} # starting a dict for the gene
+        gene = row[0] # update current gene
+      wt[row[0]][row[2]] = row[3] # wt[gene][position] = aa
 
 with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
   writer = csv.writer(CSV_file)
   writer.writerow(['gene', 'group', 'position', 'aa', 'freq'])
 
+  # reading the alignment freq file
   with open(input_path_2, "r", newline='\n', encoding='utf-8') as CSV_file:
     csv_reader = csv.reader(CSV_file, delimiter=',')
     for row in csv_reader:
-      if row[0] == 'position':
+      if row[0] == 'position': # skipping header
         continue
 
       #*************

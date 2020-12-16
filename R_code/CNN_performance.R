@@ -34,10 +34,6 @@ n_eff_data_2$group <- 'predicted'
 
 n_eff_data <- rbind(n_eff_data_1, n_eff_data_2)
 
-#finding mean
-n_eff_data <- n_eff_data %>%
-  group_by(gene, group) %>%
-  summarise(mean = mean(n_eff))
 
 # making df wider for plot
 n_eff_data_wide <- n_eff_data %>%
@@ -79,6 +75,12 @@ cor <- n_eff_data_wide %>%
   group_by(gene) %>%
   summarise(cor = cor(natural, predicted))
 
+cor_test <- n_eff_data_wide %>%
+  filter(gene == goi) %>%
+  
+  
+cor.test(n_eff_data_wide$natural, n_eff_data_wide$predicted, conf.level=conf.level)
+
 
 cor %>%
   ggplot(aes(x = "", y = cor)) +
@@ -88,3 +90,6 @@ cor %>%
   theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
   xlab("") +
   ylab("correlation coefficients") 
+
+# paired sample t-test
+ks.test(n_eff_data_wide$predicted, n_eff_data_wide$natural)
