@@ -90,24 +90,18 @@ def get_class_freq(freq, length):
       if aa == proline:
         class_freq[i]["proline"] += col[aa]
 
-    for col in class_freq:
-      class_freq_list = []
-      for aa_class in col:
-        class_freq_list.append(col[aa_class])
-
-  return class_freq, class_freq_list
+  return class_freq
 
 # --------- main -------------------------
-output_path = "../data/output/stats_evolved.csv"
-input_path = "../data/data_rosetta/data_evolved/"
-
+output_path = "../data/output/stats_align_all.csv"
+input_path = "../data/data_all/" #input multiple sequence aligments path
 
 #list of protein sequence alignments:
 protein_list = os.listdir(input_path)
 
 with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
   writer = csv.writer(CSV_file) 
-  writer.writerow(['position', 'gene', 'wt_aa', 'q_H', 'q_E', 'q_D',  'q_R', 'q_K', 'q_S', 'q_T', 'q_N', 'q_Q', 'q_A', 'q_V', 'q_L', 'q_I', 'q_M', 'q_F', 'q_Y', 'q_W', 'q_P', 'q_G', 'q_C', 'entropy', 'n_eff', 'q_aliphatic', 'q_polar', 'q_positive', 'q_negative', 'q_aromatic', 'q_proline', 'entropy_class', 'n_eff_class'])
+  writer.writerow(['position', 'gene', 'q_H', 'q_E', 'q_D',  'q_R', 'q_K', 'q_S', 'q_T', 'q_N', 'q_Q', 'q_A', 'q_V', 'q_L', 'q_I', 'q_M', 'q_F', 'q_Y', 'q_W', 'q_P', 'q_G', 'q_C', 'entropy', 'n_eff', 'q_aliphatic', 'q_polar', 'q_positive', 'q_negative', 'q_aromatic', 'q_proline', 'entropy_class', 'n_eff_class'])
 
   for protein in protein_list:
     with open(input_path + protein, 'r') as file:
@@ -128,18 +122,23 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
     n_eff = get_n_eff(entropy)
 
     # get 6 class frequencies from class_freq (for each site)
-    class_freq, class_freq_list = get_class_freq(freq, length)
+    class_freq = get_class_freq(freq, length)
 
     entropy_class = get_entropy(class_freq)
     n_eff_class = get_n_eff(entropy_class)
 
     # saving freq, entropy and n_eff values to CSV:
     aa = ['H', 'E', 'D', 'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']
-    #position = 0
+    classes = ['aliphatic', 'polar', 'positive', 'negative', 'aromatic', 'proline']
+    
     for position in range(length):
       freq_list = []
+      class_freq_list = []
       for key in aa:
         freq_list.append(freq[position][key])
+      for key in classes:
+        class_freq_list.append(class_freq[position][key])
+
       writer.writerow([str(position + 1), str(protein[0:4]).lower()] + freq_list + [str(entropy[position]), str(n_eff[position])] + class_freq_list + [str(entropy_class[position]), str(n_eff_class[position])]) 
 
 print("Saved CSV to " + output_path)
