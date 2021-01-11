@@ -53,7 +53,7 @@ def get_class_freq(freq):
 
 # --------------- main ------------------------------------
 output_path = "../data/output/stats_cnn.csv"
-input_path = "../data/CNN_output/"
+input_path = "../data/PSICOV/PSICOV_CNN_output/"
 
 
 gene_files = os.listdir(input_path)
@@ -68,15 +68,15 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
     with open(input_path + gene, 'r') as file:
       gene = gene[:-4]
       file.readline()
-      position = 0
       for line in file:
         line = line.rstrip('\n')
         line = line.rsplit()
-        position += 1
-        wt_aa = line[1]
+        position = line[4]
+        wt_aa = line[5]
         
-        aa = ['H', 'E', 'D',  'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']
-        freq = {'H':0, 'E':0, 'D':0, 'R':0, 'K':0, 'S':0, 'T':0, 'N':0, 'Q':0, 'A':0, 'V':0, 'L':0, 'I':0, 'M':0, 'F':0, 'Y':0, 'W':0, 'P':0, 'G':0, 'C':0}
+        # prALA,prARG,prASN,prASP,prCYS,prGLN,prGLU,prGLY,prHIS,prILE,prLEU,prLYS,prMET,prPHE,prPRO,prSER,prTHR,prTRP,prTYR,prVAL
+        aa = ['A', 'R', 'N',  'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
+        freq = {'A':0, 'R':0, 'N':0, 'D':0, 'C':0, 'Q':0, 'E':0, 'G':0, 'H':0, 'I':0, 'L':0, 'K':0, 'M':0, 'F':0, 'P':0, 'S':0, 'T':0, 'W':0, 'Y':0, 'V':0}
        
         for i in range(2, 22):
           freq[aa[i-2]] = float(line[i])
