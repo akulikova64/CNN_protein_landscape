@@ -93,15 +93,16 @@ def get_class_freq(freq, length):
   return class_freq
 
 # --------- main -------------------------
-output_path = "../data/output/stats_align_all.csv"
-input_path = "../data/data_all/" #input multiple sequence aligments path
+output_path = "../data/PSICOV/output/stats_align_all.csv"
+input_path = "../data/PSICOV/aln_fasta/" #input multiple sequence aligments path
 
 #list of protein sequence alignments:
 protein_list = os.listdir(input_path)
 
 with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
   writer = csv.writer(CSV_file) 
-  writer.writerow(['position', 'gene', 'q_H', 'q_E', 'q_D',  'q_R', 'q_K', 'q_S', 'q_T', 'q_N', 'q_Q', 'q_A', 'q_V', 'q_L', 'q_I', 'q_M', 'q_F', 'q_Y', 'q_W', 'q_P', 'q_G', 'q_C', 'entropy', 'n_eff', 'q_aliphatic', 'q_polar', 'q_positive', 'q_negative', 'q_aromatic', 'q_proline', 'entropy_class', 'n_eff_class'])
+  # old: writer.writerow(['position', 'gene', 'q_H', 'q_E', 'q_D',  'q_R', 'q_K', 'q_S', 'q_T', 'q_N', 'q_Q', 'q_A', 'q_V', 'q_L', 'q_I', 'q_M', 'q_F', 'q_Y', 'q_W', 'q_P', 'q_G', 'q_C', 'entropy', 'n_eff', 'q_aliphatic', 'q_polar', 'q_positive', 'q_negative', 'q_aromatic', 'q_proline', 'entropy_class', 'n_eff_class'])
+  writer.writerow(['position', 'gene', 'q_A', 'q_R', 'q_N',  'q_D', 'q_C', 'q_Q', 'q_E', 'q_G', 'q_H', 'q_I', 'q_L', 'q_K', 'q_M', 'q_F', 'q_P', 'q_S', 'q_T', 'q_W', 'q_Y', 'q_V', 'entropy', 'n_eff', 'q_aliphatic', 'q_polar', 'q_positive', 'q_negative', 'q_aromatic', 'q_proline', 'entropy_class', 'n_eff_class'])
 
   for protein in protein_list:
     with open(input_path + protein, 'r') as file:
@@ -128,7 +129,8 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
     n_eff_class = get_n_eff(entropy_class)
 
     # saving freq, entropy and n_eff values to CSV:
-    aa = ['H', 'E', 'D', 'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']
+    #old: aa = ['H', 'E', 'D', 'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']
+    aa = ['A', 'R', 'N',  'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
     classes = ['aliphatic', 'polar', 'positive', 'negative', 'aromatic', 'proline']
     
     for position in range(length):

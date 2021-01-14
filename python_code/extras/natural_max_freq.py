@@ -55,9 +55,9 @@ def get_aa_class(wt_aa, class_freqs):
   return aa_class, class_freq
 
 #--------- main ------------------------------------------
-input_path_1 = "../../data/output/cnn_wt_max_freq.csv"
-input_path_2 = "../../data/output/stats_align_all.csv"
-output_path = "../../data/output/natural_max_freq.csv" 
+input_path_1 = "../../data/PSICOV/output/cnn_wt_max_freq.csv"
+input_path_2 = "../../data/PSICOV/output/stats_align_all.csv"
+output_path = "../../data/PSICOV/output/natural_max_freq.csv" 
 
 wt = {}
 # reading in CNN max frequencies file
@@ -108,14 +108,18 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
       group = "natural_wt"
       aaList = ['H', 'E', 'D', 'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']
       #print([position, gene, wt[gene]])
-      if position in wt[gene]:
-        aa = wt[gene][position]
-        freq = row[2 + aaList.index(aa)]
+      
+      try:
+        if position in wt[gene]:
+          aa = wt[gene][position]
+          freq = row[2 + aaList.index(aa)]
 
-        wt_aa_class, wt_class_freq = get_aa_class(aa, class_freqs = row[24:30])
-        writer.writerow([gene, group, position, aa, freq, wt_aa_class, wt_class_freq])
-      else:
-        print(str(gene) + " " + str(position))
+          wt_aa_class, wt_class_freq = get_aa_class(aa, class_freqs = row[24:30])
+          writer.writerow([gene, group, position, aa, freq, wt_aa_class, wt_class_freq])
+        else:
+          print(str(gene) + " " + str(position))
+      except KeyError:
+        print(gene)
       # group = "natural_neff"
 
 

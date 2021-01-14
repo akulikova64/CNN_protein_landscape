@@ -52,7 +52,7 @@ def get_class_freq(freq):
   return class_dict, class_freq_list
 
 # --------------- main ------------------------------------
-output_path = "../data/output/stats_cnn.csv"
+output_path = "../data/PSICOV/output/stats_cnn.csv"
 input_path = "../data/PSICOV/PSICOV_CNN_output/"
 
 
@@ -61,7 +61,7 @@ gene_files = os.listdir(input_path)
 # output CSV file with all the CNN entropy, n-eff and freq values for each of 38 proteins. 
 with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
   writer = csv.writer(CSV_file) 
-  writer.writerow(['position', 'gene', 'wt_aa', 'q_H', 'q_E', 'q_D',  'q_R', 'q_K', 'q_S', 'q_T', 'q_N', 'q_Q', 'q_A', 'q_V', 'q_L', 'q_I', 'q_M', 'q_F', 'q_Y', 'q_W', 'q_P', 'q_G', 'q_C', 'entropy', 'n_eff', 'q_aliphatic', 'q_polar', 'q_positive', 'q_negative', 'q_aromatic', 'q_proline', 'entropy_class', 'n_eff_class'])
+  writer.writerow(['position', 'gene', 'wt_aa', 'q_A', 'q_R', 'q_N',  'q_D', 'q_C', 'q_Q', 'q_E', 'q_G', 'q_H', 'q_I', 'q_L', 'q_K', 'q_M', 'q_F', 'q_P', 'q_S', 'q_T', 'q_W', 'q_Y', 'q_V', 'entropy', 'n_eff', 'q_aliphatic', 'q_polar', 'q_positive', 'q_negative', 'q_aromatic', 'q_proline', 'entropy_class', 'n_eff_class'])
 
   # freq of aa acids (changes for each position)
   for gene in gene_files:
@@ -70,7 +70,7 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
       file.readline()
       for line in file:
         line = line.rstrip('\n')
-        line = line.rsplit()
+        line = line.rsplit(",")
         position = line[4]
         wt_aa = line[5]
         
@@ -78,8 +78,8 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
         aa = ['A', 'R', 'N',  'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
         freq = {'A':0, 'R':0, 'N':0, 'D':0, 'C':0, 'Q':0, 'E':0, 'G':0, 'H':0, 'I':0, 'L':0, 'K':0, 'M':0, 'F':0, 'P':0, 'S':0, 'T':0, 'W':0, 'Y':0, 'V':0}
        
-        for i in range(2, 22):
-          freq[aa[i-2]] = float(line[i])
+        for i in range(10, 30):
+          freq[aa[i-10]] = float(line[i])
 
         # get 20 frequencies from "line"
         freq_list = []

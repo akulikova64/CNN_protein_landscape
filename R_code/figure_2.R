@@ -39,10 +39,17 @@ names(n_eff_data_2) <- c('n_eff', 'gene', 'position')
 n_eff_data_2$group <- 'predicted'
 
 n_eff_data <- rbind(n_eff_data_1, n_eff_data_2)
+n_eff_unique <- unique(n_eff_data)
 
+#restart r
+library(dplyr)
+n_eff_averaged <- n_eff_unique %>%
+  group_by(gene, position, group) %>%
+  summarise(n_eff = mean(n_eff))
 
+library(tidyr)
 # making df wider for plot
-n_eff_data_wide <- n_eff_data %>%
+n_eff_data_wide <- n_eff_averaged %>%
   pivot_wider(names_from = group, values_from = n_eff)
 
 # finding all the corelations of all proteins
@@ -54,16 +61,16 @@ cor_1 <- n_eff_data_wide %>%
   summarise(cor = cor(natural, predicted)) %>%
   mutate(group = "by aa")
 
-goi_1 = "1w7w"
-goi_2 = "1znn"
-goi_3 = "1ci0"
+goi_1 = "1iwd"
+goi_2 = "1lpy"
+goi_3 = "1lm4"
 
 #finding the linear regression
 linear_reg_1 <- n_eff_data_wide %>%
   filter(gene == goi_1) %>%
   select(predicted, natural) %>%
   lm(formula = predicted ~ natural)
-summary(linear_reg)
+summary(linear_reg_1)
 
 slope_1 <- linear_reg_1$coefficients[2]
 intercept_1 <- linear_reg_1$coefficients[1]
@@ -76,7 +83,7 @@ a <- n_eff_data_wide %>%
   filter(gene == goi_1) %>%
   ggplot(aes(x = natural, y = predicted)) +
   geom_point(color = purple) +
-  ggtitle(label = goi) +
+  ggtitle(label = goi_1) +
   geom_abline(slope = slope_1, intercept = intercept_1, color = "grey65" ) +
   stat_cor(label.y = 12, label.x = 8) +
   stat_regline_equation(label.y = 10.5, label.x = 8) +
@@ -85,8 +92,8 @@ a <- n_eff_data_wide %>%
   theme(plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5)) +
   ylab("N-eff Predicted") +
   xlab("N-eff Natural") +
-  coord_cartesian(xlim = c(1, 12.5), ylim = c(1, 12.5)) +
-  scale_x_continuous(breaks = seq(2, 12, by = 2)) +
+  coord_cartesian(xlim = c(1, 16), ylim = c(1, 12.5)) +
+  scale_x_continuous(breaks = seq(2, 16, by = 2)) +
   scale_y_continuous(breaks = seq(2, 12, by = 2))
 
 # second gene:
@@ -113,8 +120,8 @@ b <- n_eff_data_wide %>%
   theme(plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5)) +
   ylab("N-eff Predicted") +
   xlab("N-eff Natural")+
-  coord_cartesian(xlim = c(1, 12.5), ylim = c(1, 12.5)) +
-  scale_x_continuous(breaks = seq(2, 12, by = 2)) +
+  coord_cartesian(xlim = c(1, 16), ylim = c(1, 12.5)) +
+  scale_x_continuous(breaks = seq(2, 16, by = 2)) +
   scale_y_continuous(breaks = seq(2, 12, by = 2))
 
 # third gene:
@@ -140,9 +147,9 @@ c <- n_eff_data_wide %>%
   scale_colour_manual(values = purple, aesthetics = c("colour", "fill")) +
   theme(plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5)) +
   ylab("N-eff Predicted") +
-  xlab("N-eff Natural") +
-  coord_cartesian(xlim = c(1, 12.5), ylim = c(1, 12.5)) +
-  scale_x_continuous(breaks = seq(2, 12, by = 2)) +
+  xlab("N-eff Natural") + 
+  coord_cartesian(xlim = c(1, 16), ylim = c(1, 12.5)) +
+  scale_x_continuous(breaks = seq(2, 16, by = 2)) +
   scale_y_continuous(breaks = seq(2, 12, by = 2))
 
 #============================================================================================
@@ -189,8 +196,17 @@ n_eff_data_2$group <- 'predicted'
 
 n_eff_data <- rbind(n_eff_data_1, n_eff_data_2)
 
+n_eff_unique_2 <- unique(n_eff_data)
+
+#restart r
+library(dplyr)
+n_eff_averaged_2 <- n_eff_unique_2 %>%
+  group_by(gene, position, group) %>%
+  summarise(n_eff_class = mean(n_eff_class))
+
+library(tidyr)
 # making df wider for plot
-n_eff_data_wide_2 <- n_eff_data %>%
+n_eff_data_wide_2 <- n_eff_averaged_2 %>%
   pivot_wider(names_from = group, values_from = n_eff_class)
 
 library(dplyr)
@@ -225,9 +241,9 @@ a2 <- n_eff_data_wide_2 %>%
   scale_colour_manual(values = mustard, aesthetics = c("colour", "fill")) +
   theme(plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5)) +
   ylab("N-eff Class Predicted") +
-  xlab("N-eff Class Natural") +
-  coord_cartesian(xlim = c(1, 12), ylim = c(1, 12)) +
-  scale_x_continuous(breaks = seq(2, 12, by = 2)) +
+  xlab("N-eff Class Natural") + 
+  coord_cartesian(xlim = c(1, 16), ylim = c(1, 12.5)) +
+  scale_x_continuous(breaks = seq(2, 16, by = 2)) +
   scale_y_continuous(breaks = seq(2, 12, by = 2))
 
 #second plot: finding the linear regression
@@ -253,9 +269,9 @@ b2 <- n_eff_data_wide_2 %>%
   scale_colour_manual(values = mustard, aesthetics = c("colour", "fill")) +
   theme(plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5)) +
   ylab("N-eff Class Predicted") +
-  xlab("N-eff Class Natural")+
-  coord_cartesian(xlim = c(1, 12), ylim = c(1, 12)) +
-  scale_x_continuous(breaks = seq(2, 12, by = 2)) +
+  xlab("N-eff Class Natural")+ 
+  coord_cartesian(xlim = c(1, 16), ylim = c(1, 12.5)) +
+  scale_x_continuous(breaks = seq(2, 16, by = 2)) +
   scale_y_continuous(breaks = seq(2, 12, by = 2))
 
 #third plot: finding the linear regression
@@ -281,9 +297,9 @@ c2 <- n_eff_data_wide_2 %>%
   scale_colour_manual(values = mustard, aesthetics = c("colour", "fill")) +
   theme(plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5)) +
   ylab("N-eff Class Predicted") +
-  xlab("N-eff Class Natural") +
-  coord_cartesian(xlim = c(1, 12), ylim = c(1, 12)) +
-  scale_x_continuous(breaks = seq(2, 12, by = 2)) +
+  xlab("N-eff Class Natural") + 
+  coord_cartesian(xlim = c(1, 16), ylim = c(1, 12.5)) +
+  scale_x_continuous(breaks = seq(2, 16, by = 2)) +
   scale_y_continuous(breaks = seq(2, 12, by = 2))
 
 #=========================================================================================================
@@ -295,17 +311,18 @@ correlation_coeffs <- rbind(cor_1, cor_2)
 custom_colors <- c("#9875bd", "#ecb613")
 
 d <- correlation_coeffs %>%
-  ggplot(aes(x = cor, fill = group)) +
-  geom_density(alpha = 0.5) + 
+  ggplot(aes(x = group, y = cor, fill = group)) +
+  geom_violin(alpha = 0.5) + geom_sina() +
   scale_colour_manual(values = custom_colors, aesthetics = c("colour", "fill")) +
   #ggtitle(label = "CNN Predictions Compared to \n Alignment Consensus") +
   theme_cowplot() + 
   theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "none") +
-  ylab("Count") +
-  xlab("Correlation Coefficients (R)") +
-  coord_cartesian(xlim = c(0.0, 0.5), ylim = c(0, 3)) +
-  scale_x_continuous(breaks = seq(0, 0.6, by = 0.1)) +
-  scale_y_continuous(breaks = seq(0, 3, by = 0.5))
+  ylab("Correlation Coefficients") +
+  xlab("")
+
+  #coord_cartesian(xlim = c(0.0, 0.5), ylim = c(0, 3)) +
+  #scale_x_continuous(breaks = seq(0, 0.6, by = 0.1)) +
+  #scale_y_continuous(breaks = seq(0, 3, by = 0.5))
 
 #=======================================================================
 # making and saving final plot
