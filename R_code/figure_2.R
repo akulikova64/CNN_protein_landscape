@@ -43,17 +43,18 @@ n_eff_unique <- unique(n_eff_data)
 
 #restart r
 library(dplyr)
+
 n_eff_averaged <- n_eff_unique %>%
   group_by(gene, position, group) %>%
   summarise(n_eff = mean(n_eff))
 
-library(tidyr)
+
 # making df wider for plot
 n_eff_data_wide <- n_eff_averaged %>%
   pivot_wider(names_from = group, values_from = n_eff)
 
 # finding all the corelations of all proteins
-library(dplyr)
+
 cor_1 <- n_eff_data_wide %>%
   select(gene, natural, predicted) %>%
   na.omit() %>%
