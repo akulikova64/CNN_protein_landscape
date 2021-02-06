@@ -13,22 +13,21 @@ from Bio import SeqIO
 THRESHOLD = 1.00
 
 def compare(aln_seq, ref_seq):
+  print(len(aln_seq))
+  print(len(ref_seq))
   count_similar = 0
   for i, j in zip(aln_seq, ref_seq):
     if i == j:
       count_similar += 1
-    else:
-      print("aln:", i, "ref", j)
   
-  print(count_similar)
-  print(len(aln_seq))
+
   max_limit = THRESHOLD + 0.05
   min_limit = THRESHOLD - 0.05
 
-  similarity = count_similar/len(aln_seq)
+  similarity = float(count_similar/len(aln_seq))
 
   if similarity >= min_limit and similarity <= max_limit:
-    #print(similarity)
+    print(similarity)
     return True
   else:
     #print(similarity)
@@ -36,7 +35,7 @@ def compare(aln_seq, ref_seq):
 
 def get_reference_from_CNN_data():
   aaCodes = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C', 'GLN':'Q', 'GLU':'E', 'GLY':'G', 'HIS':'H', 'ILE':'I', 'LEU':'L', 'LYS':'K', 'MET':'M', 'PHE':'F', 'PRO':'P', 'SER':'S', 'THR':'T','TRP':'W', 'TYR':'Y', 'VAL':'V'}
-  with open("../data/PSICOV/PSICOV_CNN_output/1a3a_final_tot.csv", 'r') as file:
+  with open("../data/PSICOV/PSICOV_CNN_output/1a6m_final_tot.csv", 'r') as file:
     ref_seq = ""
     file.readline()
     for line in file:
@@ -47,27 +46,22 @@ def get_reference_from_CNN_data():
 
   return ref_seq
 
-CNN_reference = get_reference_from_CNN_data()
-records = list(SeqIO.parse("../data/PSICOV/aln_fasta/1a3aA.fasta", "fasta"))
-#ref_seq = get_reference()
-ref_seq = records[0].seq
+#CNN_reference = get_reference_from_CNN_data() #should be the same as records[0] in alignment
 
-#print(CNN_reference[0:40])
-#print(ref_seq[0:40])
-print(compare(CNN_reference, ref_seq))
 
-'''
 with open("../data/PSICOV/aln_20/1a3a_aln_20.fasta", 'w') as file:
   
+  records = list(SeqIO.parse("../data/PSICOV/aln_fasta/1a6mA.fasta", "fasta"))
+  ref_seq = records[0].seq
+  file.write(">reference")
 
-  records = list(SeqIO.parse("../data/PSICOV/aln_fasta/1a3aA.fasta", "fasta"))
-  ref_seq = get_reference()
-
-  for i in range(len(records)):
+  for i in range(1, len(records)):
     aln_seq = records[i].seq
     keep = compare(aln_seq, ref_seq)
 
     if keep:
-      # then write the aln_seq to a new file and folder (aln_20)'''
+      file.write(">" + str(i))
+      file.write(aln_seq)
+      # then write the aln_seq to a new file and folder (aln_20)
       
 
