@@ -1,4 +1,5 @@
 from Bio import SeqIO
+import os
 
 # This code samples the sequences PSICOV alignments by % similarity to the sequences in the PSICOV pdb structures.
 
@@ -9,31 +10,25 @@ from Bio import SeqIO
 
 #loading a fasta aln file:
 
-#THRESHOLD = 0.20
-THRESHOLD = 1.00
+MAX_LIM = 0.2
+MIN_LIM = 0.0
 
 def compare(aln_seq, ref_seq):
-  print(len(aln_seq))
-  print(len(ref_seq))
   count_similar = 0
   for i, j in zip(aln_seq, ref_seq):
     if i == j:
       count_similar += 1
-  
-
-  max_limit = THRESHOLD + 0.05
-  min_limit = THRESHOLD - 0.05
 
   similarity = float(count_similar/len(aln_seq))
 
-  if similarity >= min_limit and similarity <= max_limit:
+  if similarity >= MIN_LIM and similarity <= MAX_LIM:
     print(similarity)
     return True
   else:
-    #print(similarity)
     return False
 
 def get_reference_from_CNN_data():
+  
   aaCodes = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C', 'GLN':'Q', 'GLU':'E', 'GLY':'G', 'HIS':'H', 'ILE':'I', 'LEU':'L', 'LYS':'K', 'MET':'M', 'PHE':'F', 'PRO':'P', 'SER':'S', 'THR':'T','TRP':'W', 'TYR':'Y', 'VAL':'V'}
   with open("../data/PSICOV/PSICOV_CNN_output/1a6m_final_tot.csv", 'r') as file:
     ref_seq = ""
@@ -48,20 +43,25 @@ def get_reference_from_CNN_data():
 
 #CNN_reference = get_reference_from_CNN_data() #should be the same as records[0] in alignment
 
+input_path = "../data/PSICOV/aln_fasta/"
+output_path = "../data/PSICOV/"
 
-with open("../data/PSICOV/aln_20/1a3a_aln_20.fasta", 'w') as file:
-  
-  records = list(SeqIO.parse("../data/PSICOV/aln_fasta/1a6mA.fasta", "fasta"))
-  ref_seq = records[0].seq
-  file.write(">reference")
+protein_list = os.listdir(input_path)
 
-  for i in range(1, len(records)):
-    aln_seq = records[i].seq
-    keep = compare(aln_seq, ref_seq)
+with open(output_path + "aln_" + str(int(MAX_LIM*100)) + "/", 'w+') as file:
 
-    if keep:
-      file.write(">" + str(i))
-      file.write(aln_seq)
-      # then write the aln_seq to a new file and folder (aln_20)
+  for protein in protein_list:
+    records = list(SeqIO.parse(input_path + protein, "fasta"))
+    ref_seq = records[0].seq
+    file.write(">reference\n")
+
+    for i in range(1, len(records)):
+      aln_seq = records[i].seq
+      keep = compare(str(aln_seq), str(ref_seq))
+
+      if keep:
+        file.write(">" + str(i) + "\n")
+        file.write(str(aln_seq) + "\n")
+
       
 
