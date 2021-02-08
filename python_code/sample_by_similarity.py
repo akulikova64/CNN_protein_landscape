@@ -1,5 +1,6 @@
 from Bio import SeqIO
 import os
+import sys
 
 # This code samples the sequences PSICOV alignments by % similarity to the sequences in the PSICOV pdb structures.
 
@@ -10,8 +11,8 @@ import os
 
 #loading a fasta aln file:
 
-MAX_LIM = 0.2
-MIN_LIM = 0.0
+MAX_LIM = 1.0
+MIN_LIM = 0.8
 
 def compare(aln_seq, ref_seq):
   count_similar = 0
@@ -21,8 +22,7 @@ def compare(aln_seq, ref_seq):
 
   similarity = float(count_similar/len(aln_seq))
 
-  if similarity >= MIN_LIM and similarity <= MAX_LIM:
-    print(similarity)
+  if similarity > MIN_LIM and similarity <= MAX_LIM:
     return True
   else:
     return False
@@ -44,16 +44,16 @@ def get_reference_from_CNN_data():
 #CNN_reference = get_reference_from_CNN_data() #should be the same as records[0] in alignment
 
 input_path = "../data/PSICOV/aln_fasta/"
-output_path = "../data/PSICOV/"
+output_path = "../data/PSICOV/" + "aln_" + str(int(MAX_LIM*100)) + "/"
 
 protein_list = os.listdir(input_path)
 
-with open(output_path + "aln_" + str(int(MAX_LIM*100)) + "/", 'w+') as file:
-
-  for protein in protein_list:
+for protein in protein_list:
+  with open(output_path + protein, 'w') as file:
     records = list(SeqIO.parse(input_path + protein, "fasta"))
     ref_seq = records[0].seq
     file.write(">reference\n")
+    file.write(str(ref_seq) + "\n")
 
     for i in range(1, len(records)):
       aln_seq = records[i].seq

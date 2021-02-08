@@ -93,8 +93,8 @@ def get_class_freq(freq, length):
   return class_freq
 
 # --------- main -------------------------
-output_path = "../data/PSICOV/output/stats_align_all.csv"
-input_path = "../data/PSICOV/aln_fasta/" #input multiple sequence aligments path
+output_path = "../data/PSICOV/output/stats_align_files/stats_align_100.csv"
+input_path = "../data/PSICOV/aln_100/" #input multiple sequence aligments path
 
 #list of protein sequence alignments:
 protein_list = os.listdir(input_path)
