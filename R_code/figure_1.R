@@ -1,6 +1,5 @@
 library(tidyverse)
 library(yardstick)
-library(dplyr)
 library(ggplot2)
 library(ggpubr)
 library(cowplot)

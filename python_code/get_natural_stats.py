@@ -9,7 +9,7 @@ import sys
 2) Calculates entropy for each col (H)
 3) Calculates e^H
 4) Records into CSV for each col/site
-4) Repeats for 38 proteins (aligned)
+4) Repeats for all proteins (aligned)
 '''
 
 def get_alignment(lines):
