@@ -125,11 +125,10 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
     # new (correct) structure of "line" in lines:
     #pos, aa_id, pdb_id, chain_id, pos, wtAA, prAA, wt_prob, pred_prob, avg_log_ratio, prALA, prARG, prASN, prASP, prCYS,prGLN,prGLU,prGLY,prHIS,prILE,prLEU,prLYS,prMET,prPHE,prPRO,prSER,prTHR,prTRP,prTYR,prVAL,prHydrophobic,prAromatic,prPolarUncharged,prCationic,prAnionic,prCharged,prSmall,prSulfur,prAcyl,prAlcohol
     # 0     1      2        3       4    5     6      7          8            9         10      11     12    13     14    15    16    17   18    19    20    21     22     23    24   25    26    27    28    29      30             31         32               33        34
-    position = 1
+    gene = str(file[0:4]).lower()
     for line in lines:
 
-      gene = str(file[0:4]).lower()
-
+      position = str(line[4])
       # add predicted row
       group = "predicted"
       #position = str(line[0])
@@ -149,7 +148,6 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
       wt_aa_class, wt_class_freq = get_class_freq_2(wt_aa, line)
       writer.writerow([gene, group, position, wt_aa, freq,  wt_aa_class, wt_class_freq])
 
-      position += 1
       #sys.exit()
     #print(lines)
     #sys.exit()

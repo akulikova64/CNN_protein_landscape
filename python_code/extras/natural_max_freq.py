@@ -106,7 +106,7 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
       # natural_wt
       #*************
       group = "natural_wt"
-      aaList = ['H', 'E', 'D', 'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']
+      aaList = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]
       #print([position, gene, wt[gene]])
       
       try:
