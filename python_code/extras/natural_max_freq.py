@@ -4,7 +4,7 @@ import csv
 import sys
 
 def getMax(list):
-  aaList = ['H', 'E', 'D',  'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']
+  aaList = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]  
   ind = 0
   max = 0
   for i in range(0,len(list)):
@@ -90,8 +90,9 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
       gene = row[1]
       group = "natural_max"
       position = row[0]
-      # 'position', 'gene', 'q_H', 'q_E', 'q_D', 'q_R', 'q_K', 'q_S', 'q_T', 'q_N', 'q_Q', 
-      # 'q_A', 'q_V', 'q_L', 'q_I', 'q_M', 'q_F', 'q_Y', 'q_W', 'q_P', 'q_G', 'q_C', 'entropy', 'n_eff'
+      
+      # 'position,gene,q_A,q_R,q_N,q_D,q_C,q_Q,q_E,q_G,q_H,q_I,q_L,q_K,q_M,q_F,q_P,q_S,q_T,q_W,q_Y,q_V,entropy,n_eff,q_aliphatic,q_polar,q_positive,q_negative,q_aromatic,q_proline,entropy_class,n_eff_class
+
       res = getMax(row[2:22]) # aa freq
       aa = res[0]
       freq = res[1]

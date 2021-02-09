@@ -27,7 +27,7 @@ def get_alignment(lines):
   return alignment
 
 def get_frequencies(length, alignment):
-  freq = [dict(A = 0, R = 0, N = 0, D = 0, C = 0, E = 0, Q = 0, G = 0, H = 0, I = 0, L = 0, K = 0, M = 0, F = 0, P = 0, S = 0, T = 0, Y = 0, W = 0, V = 0) for x in range(length)]
+  freq = [dict(A = 0, R = 0, N = 0, D = 0, C = 0, E = 0, Q = 0, G = 0, H = 0, I = 0, L = 0, K = 0, M = 0, F = 0, P = 0, S = 0, T = 0, W = 0, Y = 0, V = 0) for x in range(length)]
 
   sum_list = []
   for i in range(length):

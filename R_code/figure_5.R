@@ -40,21 +40,21 @@ sim20 <- natural_data_20 %>%
   mutate(perc_sim = "(0-20%]") 
 
 sim40 <- natural_data_20 %>%
-  mutate(perc_sim = "(0-20%]") 
+  mutate(perc_sim = "(20-40%]") 
 
 sim60 <- natural_data_20 %>%
-  mutate(perc_sim = "(0-20%]") 
+  mutate(perc_sim = "(40-60%]") 
 
 sim80 <- natural_data_20 %>%
-  mutate(perc_sim = "(0-20%]") 
+  mutate(perc_sim = "(60-80%]") 
 
 sim100 <- natural_data_20 %>%
-  mutate(perc_sim = "(0-20%]") 
+  mutate(perc_sim = "(80-100%]") 
 
-all_data2 <- rbind(sim20, sim40, sim60, sim80, sim100)
+all_data2 <- rbind(sim20, sim40, sim60, sim80, sim100) #optional dataset
 
 # checking for when predicted aa matches the consensus aa in alignment
-all_data2_wider <- all_data2
+all_data2_wider <- all_data2 %>%
   pivot_wider(names_from = group, values_from = c(aa, freq, aa_class, class_freq))
 
 match_consensus <- all_data2_wider %>%
