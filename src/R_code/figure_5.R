@@ -60,20 +60,23 @@ all_data_wider <- all_data_trimmed %>%
   pivot_wider(names_from = group, values_from = c(aa, freq, aa_class, class_freq))
 
 match_consensus <- all_data_wider %>%
-  mutate(match = aa_wt == aa_natural_max) %>%
-  select(gene, position, match, perc_sim)
+  mutate(match_predict_cons = aa_predicted == aa_natural_max,
+         match_wt_cons = aa_wt == aa_natural_max)
 
 stats_for_plot <- match_consensus %>%
-  group_by(gene, match, perc_sim) %>%
-  summarise(count = n()) %>%
-  mutate(freq = count / sum(count)) %>%
-  filter(match == TRUE) 
+  group_by(gene, perc_sim) %>%
+  summarise(freq_predict_cons = sum(match_predict_cons, na.rm = TRUE)/sum(!is.na(match_predict_cons)),
+            freq_wt_cons = sum(match_wt_cons, na.rm = TRUE)/sum(!is.na(match_wt_cons)))
 
-stats_for_plot %>%
-  ggplot(aes(y = freq, x = perc_sim)) +
-  geom_violin(alpha = 0.5, fill = "grey") + 
-  geom_sina(size = 0.2) +
-  theme_cowplot() + 
+stats_for_plot2 <- stats_for_plot %>%
+  pivot_longer(c(freq_predict_cons, freq_wt_cons), values_to = "freq", names_to = "type")
+
+stats_for_plot2 %>%
+  ggplot(aes(y = freq, x = perc_sim, fill = type)) +
+  geom_violin(alpha = 0.5) + 
+  #geom_sina(size = 0.2) +
+  theme_cowplot() + NULL
+  facet_wrap(vars(type), ncol = 1) + NULL
   theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "none") +
   ggtitle("CNN Predictions Compared to Alignment Consensus \n Alignment Consensus") +
   scale_x_discrete(

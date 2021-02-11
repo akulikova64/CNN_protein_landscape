@@ -17,10 +17,11 @@ MIN_LIM = 0.8
 def compare(aln_seq, ref_seq):
   count_similar = 0
   for i, j in zip(aln_seq, ref_seq):
+    assert j != "-"
     if i == j:
       count_similar += 1
 
-  similarity = float(count_similar/len(aln_seq))
+  similarity = float(count_similar/len(ref_seq))
 
   if similarity > MIN_LIM and similarity <= MAX_LIM:
     return True
