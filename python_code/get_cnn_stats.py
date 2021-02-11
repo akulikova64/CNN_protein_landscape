@@ -71,7 +71,7 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
       for line in file:
         line = line.rstrip('\n')
         line = line.rsplit(",")
-        position = line[4]
+        position = str(int(line[0]) + 1)
         wt_aa = line[5]
         
         # prALA,prARG,prASN,prASP,prCYS,prGLN,prGLU,prGLY,prHIS,prILE,prLEU,prLYS,prMET,prPHE,prPRO,prSER,prTHR,prTRP,prTYR,prVAL

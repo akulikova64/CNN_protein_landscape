@@ -34,6 +34,8 @@ joined_data_100 <- joined_data_100 %>%
 
 all_data <- rbind(joined_data_20, joined_data_40, joined_data_60, joined_data_80, joined_data_100)
 
+all_data_trimmed <- subset(all_data, gene != c('1dbx', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc'))
+
 #joining just the natural data:
 
 sim20 <- natural_data_20 %>%
@@ -54,11 +56,11 @@ sim100 <- natural_data_20 %>%
 all_data2 <- rbind(sim20, sim40, sim60, sim80, sim100) #optional dataset
 
 # checking for when predicted aa matches the consensus aa in alignment
-all_data2_wider <- all_data2 %>%
+all_data_wider <- all_data_trimmed %>%
   pivot_wider(names_from = group, values_from = c(aa, freq, aa_class, class_freq))
 
-match_consensus <- all_data2_wider %>%
-  mutate(match = aa_natural_wt == aa_natural_max) %>%
+match_consensus <- all_data_wider %>%
+  mutate(match = aa_wt == aa_natural_max) %>%
   select(gene, position, match, perc_sim)
 
 stats_for_plot <- match_consensus %>%
@@ -70,17 +72,17 @@ stats_for_plot <- match_consensus %>%
 stats_for_plot %>%
   ggplot(aes(y = freq, x = perc_sim)) +
   geom_violin(alpha = 0.5, fill = "grey") + 
-  geom_sina(size = 0.75) +
+  geom_sina(size = 0.2) +
   theme_cowplot() + 
   theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "none") +
-  ggtitle("CNN Predictions Compared to \n Alignment Consensus") +
+  ggtitle("CNN Predictions Compared to Alignment Consensus \n Alignment Consensus") +
   scale_x_discrete(
     name = "Percent Sequence Similarity of Alignment"
   ) +
   scale_y_continuous(
     name = "Accuracy",
-    limits = c(0, 1.00),
-    breaks = c(0, 0.20, 0.40, 0.60, 0.80, 1.00))
+    limits = c(0, 0.6),
+    breaks = c(0, 0.20, 0.40, 0.60))
 
 ggsave(filename = "figure_5.png", plot = figure_5, width = 6, height = 4)
 

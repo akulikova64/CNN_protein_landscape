@@ -3,6 +3,8 @@ import shutil
 import csv
 import sys
 
+# created CSV with tidy CNN results
+
 def findMax(line):
   ind = 2
   m = 0
@@ -128,7 +130,7 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
     gene = str(file[0:4]).lower()
     for line in lines:
 
-      position = str(line[4])
+      position = str(int(line[0]) + 1)
       # add predicted row
       group = "predicted"
       #position = str(line[0])
