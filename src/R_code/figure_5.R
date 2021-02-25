@@ -35,7 +35,7 @@ joined_data_100 <- joined_data_100 %>%
 all_data <- rbind(joined_data_20, joined_data_40, joined_data_60, joined_data_80, joined_data_100)
 
 all_data_trimmed <- all_data %>%
-  filter(gene != c('1dbx', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc'))
+  filter(!gene %in% c('1dbx', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc'))
 
 #joining just the natural data:
 
