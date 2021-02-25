@@ -55,9 +55,10 @@ def get_aa_class(wt_aa, class_freqs):
   return aa_class, class_freq
 
 #--------- main ------------------------------------------
-input_path_1 = "../../data/PSICOV/output/cnn_wt_max_freq.csv"
-input_path_2 = "../../data/PSICOV/output/stats_align_files/stats_align_100.csv"
-output_path = "../../data/PSICOV/output/natural_max_freq_files/natural_max_freq_100.csv" 
+group_name = "100"
+input_path_1 = "../../../output/output_PSICOV/cnn_wt_max_freq.csv"
+input_path_2 = "../../../output/output_PSICOV/stats_align_files/stats_align_" + group_name + ".csv"
+output_path = "../../../output/output_PSICOV/natural_max_freq_files/natural_max_freq_" + group_name + ".csv" 
 
 wt = {}
 # reading in CNN max frequencies file

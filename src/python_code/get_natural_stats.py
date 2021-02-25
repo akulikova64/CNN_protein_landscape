@@ -93,8 +93,9 @@ def get_class_freq(freq, length):
   return class_freq
 
 # --------- main -------------------------
-output_path = "../data/PSICOV/output/stats_align_files/stats_align_100.csv"
-input_path = "../data/PSICOV/aln_100/" #input multiple sequence aligments path
+group_name = "20"
+output_path = "../../output/output_PSICOV/stats_align_files/stats_align_" + group_name + ".csv"
+input_path = "../../data/PSICOV/aln_" + group_name + "/" #input multiple sequence aligments path
 
 #list of protein sequence alignments:
 protein_list = os.listdir(input_path)
@@ -107,6 +108,9 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
   for protein in protein_list:
     with open(input_path + protein, 'r') as file:
       lines = [line.rstrip('\n') for line in file]
+
+    if len(lines) == 0:
+      continue
 
     # get a list of aligned sequences
     alignment = get_alignment(lines)

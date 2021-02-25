@@ -1,10 +1,5 @@
 library(tidyverse)
-library(yardstick)
-library(ggplot2)
-library(ggpubr)
 library(cowplot)
-library(tidyr)
-library(sqldf)
 library(sinaplot)
 library(ggforce)
 
@@ -19,14 +14,15 @@ natural_data <- read.csv(file = "./natural_max_freq.csv", header=TRUE, sep=",")
 
 joined_data <- rbind(x = cnn_data, y = natural_data)
 
+joined_data_trimmed <- joined_data %>%
+  filter(!gene %in% c('1dbx', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc'))
+
+
 # check if predicted aa is the one found in the wt structure
 matches_1 <- joined_data %>%
   pivot_wider(names_from = group, values_from = c(aa, freq, aa_class, class_freq)) %>%
   mutate(match = aa_predicted == aa_wt) %>%
   select(gene, position, match)
-
-# restart r
-library(dplyr)
 
 # selecting the data entries where the predicted amino acid matches the 
 summary_stats_1 <- matches_1 %>%

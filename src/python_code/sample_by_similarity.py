@@ -11,8 +11,8 @@ import sys
 
 #loading a fasta aln file:
 
-MAX_LIM = 1.0
-MIN_LIM = 0.8
+MAX_LIM = 0.2
+MIN_LIM = MAX_LIM - 0.2
 
 def compare(aln_seq, ref_seq):
   count_similar = 0
@@ -28,6 +28,7 @@ def compare(aln_seq, ref_seq):
   else:
     return False
 
+# do not use this function (it is just in case)
 def get_reference_from_CNN_data():
   
   aaCodes = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C', 'GLN':'Q', 'GLU':'E', 'GLY':'G', 'HIS':'H', 'ILE':'I', 'LEU':'L', 'LYS':'K', 'MET':'M', 'PHE':'F', 'PRO':'P', 'SER':'S', 'THR':'T','TRP':'W', 'TYR':'Y', 'VAL':'V'}
@@ -44,8 +45,8 @@ def get_reference_from_CNN_data():
 
 #CNN_reference = get_reference_from_CNN_data() #should be the same as records[0] in alignment
 
-input_path = "../data/PSICOV/aln_fasta/"
-output_path = "../data/PSICOV/" + "aln_" + str(int(MAX_LIM*100)) + "/"
+input_path = "../../data/PSICOV/aln_fasta/"
+output_path = "../../data/PSICOV/" + "aln_" + str(int(MAX_LIM*100)) + "/"
 
 protein_list = os.listdir(input_path)
 

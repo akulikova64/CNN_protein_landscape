@@ -70,29 +70,39 @@ stats_for_plot <- match_consensus %>%
             freq_wt_cons = sum(match_wt_cons, na.rm = TRUE)/sum(!is.na(match_wt_cons)))
 
 stats_for_plot2 <- stats_for_plot %>%
-  pivot_longer(c(freq_predict_cons, freq_wt_cons), values_to = "freq", names_to = "type")
+  pivot_longer(c(freq_predict_cons, freq_wt_cons), values_to = "freq", names_to = "condition")
 
-stats_for_plot2 %>%
-  ggplot(aes(y = freq, x = perc_sim, fill = type)) +
+custom_colors <- c("#9875bd", "#ecb613")
+data_summary <- function(x) {
+  m <- mean(x)
+  ymin <- m-sd(x)
+  ymax <- m+sd(x)
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
+
+figure_5 <- stats_for_plot2 %>%
+  filter(condition == "")
+  ggplot(aes(y = freq, x = perc_sim, fill = condition)) +
   geom_violin(alpha = 0.5) + 
-  geom_sina(size = 0.2) +
-  theme_cowplot() + NULL
-  facet_wrap(vars(type), ncol = 1) + NULL
-  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "none") +
-  ggtitle("CNN Predictions Compared to Alignment Consensus \n Alignment Consensus") +
+  #geom_sina(size = 0.2) +
+  #stat_summary(fun.data=data_summary) +
+  theme_cowplot() + 
+  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
+  ggtitle("Accuracy with Increasing \n Sequence Similarity") +
   scale_x_discrete(
     name = "Percent Sequence Similarity of Alignment"
   ) +
   scale_y_continuous(
     name = "Accuracy",
-    limits = c(0, 0.6),
-    breaks = c(0, 0.20, 0.40, 0.60))
+    limits = c(0, 1.0),
+    breaks = seq(from = 0, to = 1.0, by = 0.1)) +
+  scale_fill_manual(
+    values = c(freq_predict_cons = "#9875bd", freq_wt_cons = "#ecb613"),
+    name = "Condition",
+    labels = c("predicted = consensus", "wt = consensus"))
   
-#lets see the outliers
-stats_for_plot2 %>%
-  filter(type == "freq_wt_cons")
 
-ggsave(filename = "figure_5.png", plot = figure_5, width = 6, height = 4)
+ggsave(filename = "../../analysis/figures/figure_5.png", plot = figure_5, width = 8, height = 4)
 
 
 
