@@ -34,7 +34,8 @@ joined_data_100 <- joined_data_100 %>%
 
 all_data <- rbind(joined_data_20, joined_data_40, joined_data_60, joined_data_80, joined_data_100)
 
-all_data_trimmed <- subset(all_data, gene != c('1dbx', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc'))
+all_data_trimmed <- all_data %>%
+  filter(gene != c('1dbx', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc'))
 
 #joining just the natural data:
 
@@ -74,7 +75,7 @@ stats_for_plot2 <- stats_for_plot %>%
 stats_for_plot2 %>%
   ggplot(aes(y = freq, x = perc_sim, fill = type)) +
   geom_violin(alpha = 0.5) + 
-  #geom_sina(size = 0.2) +
+  geom_sina(size = 0.2) +
   theme_cowplot() + NULL
   facet_wrap(vars(type), ncol = 1) + NULL
   theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "none") +
@@ -86,6 +87,10 @@ stats_for_plot2 %>%
     name = "Accuracy",
     limits = c(0, 0.6),
     breaks = c(0, 0.20, 0.40, 0.60))
+  
+#lets see the outliers
+stats_for_plot2 %>%
+  filter(type == "freq_wt_cons")
 
 ggsave(filename = "figure_5.png", plot = figure_5, width = 6, height = 4)
 

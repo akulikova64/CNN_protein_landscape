@@ -47,3 +47,4 @@ joined_data <- inner_join(x = natural_var_all, y = cnn_var, by = c('position', '
 
 
 
+
