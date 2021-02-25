@@ -53,8 +53,8 @@ for protein in protein_list:
   with open(output_path + protein, 'w') as file:
     records = list(SeqIO.parse(input_path + protein, "fasta"))
     ref_seq = records[0].seq
-    file.write(">reference\n")
-    file.write(str(ref_seq) + "\n")
+    #file.write(">reference\n") # we do not want to include the reference in the calculations
+    #file.write(str(ref_seq) + "\n")
 
     for i in range(1, len(records)):
       aln_seq = records[i].seq
