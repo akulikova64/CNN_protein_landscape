@@ -2,6 +2,7 @@ library(tidyverse)
 library(cowplot)
 library(ggforce)
 
+
 # loading data
 cnn_data <- read.csv(file = "./cnn_wt_max_freq.csv", header=TRUE, sep=",")
 natural_data_20 <- read.csv(file = "./natural_max_freq_files/natural_max_freq_20.csv", header=TRUE, sep=",")
@@ -81,21 +82,26 @@ data_summary <- function(x) {
 }
 
 figure_5 <- stats_for_plot2 %>%
-  filter(condition == "")
-  ggplot(aes(y = freq, x = perc_sim, fill = condition)) +
-  geom_violin(alpha = 0.5) + 
+  filter(condition == "freq_predict_cons") %>%
+  ggplot(aes(y = freq, x = perc_sim)) +
+  geom_violin(fill = "#9875bd", alpha = 0.5) + 
+  geom_hline(yintercept = 0.751, linetype = "dashed", color = "red", alpha = 0.4, size = 0.85) +
   #geom_sina(size = 0.2) +
-  #stat_summary(fun.data=data_summary) +
+  stat_summary(fun.data=data_summary) +
   theme_cowplot() + 
-  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-  ggtitle("Accuracy with Increasing \n Sequence Similarity") +
+  theme(plot.title = element_text(hjust = 0.5), 
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.grid.major.y = element_line(color = "grey92", size=0.5)
+        ) +
+  labs(title = "CNN Predictions Compared to Alignment Consensus", 
+       subtitle = "Amino Acid Predictions") +
   scale_x_discrete(
     name = "Percent Sequence Similarity of Alignment"
   ) +
   scale_y_continuous(
     name = "Accuracy",
     limits = c(0, 1.0),
-    breaks = seq(from = 0, to = 1.0, by = 0.1)) +
+    breaks = seq(from = 0, to = 1.0, by = 0.1)) + NULL
   scale_fill_manual(
     values = c(freq_predict_cons = "#9875bd", freq_wt_cons = "#ecb613"),
     name = "Condition",
@@ -104,9 +110,25 @@ figure_5 <- stats_for_plot2 %>%
 
 ggsave(filename = "../../analysis/figures/figure_5.png", plot = figure_5, width = 8, height = 4)
 
+#within aa class predictions plot.
+
+class_match <- all_data_wider %>%
+  mutate(match_predict_cons = aa_class_predicted == aa_class_natural_max,
+         match_wt_cons = aa_class_wt == aa_class_natural_max)
 
 
 
+
+
+#testing...
+
+a <- tibble(x = 1:4, y = c(TRUE, FALSE, TRUE, TRUE))
+
+a %>%
+  group_by(y) %>%
+  summarise(freq = sum(y)/sum(!is.na(y)))
+
+#it works ... cool
 
 
 

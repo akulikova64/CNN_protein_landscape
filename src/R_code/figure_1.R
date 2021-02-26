@@ -19,16 +19,19 @@ joined_data_trimmed <- joined_data %>%
 
 
 # check if predicted aa is the one found in the wt structure
-matches_1 <- joined_data %>%
-  pivot_wider(names_from = group, values_from = c(aa, freq, aa_class, class_freq)) %>%
-  mutate(match = aa_predicted == aa_wt) %>%
-  select(gene, position, match)
+joined_data_wider <- joined_data_trimmed %>%
+  pivot_wider(names_from = group, values_from = c(aa, freq, aa_class, class_freq))
+
+match_wt <- joined_data_wider %>%
+  mutate(match_predict_wt = aa_predicted == aa_wt)
+
 
 # selecting the data entries where the predicted amino acid matches the 
-summary_stats_1 <- matches_1 %>%
-  group_by(gene, match) %>%
-  summarise(count = n()) %>%
-  mutate(freq = count / sum(count))
+stats_1 <- match_wt %>%
+  group_by(gene) %>%
+  summarise(freq_predict_wt = sum(match_predict_wt, na.rm = TRUE)/sum(!is.na(match_predict_wt)))
+#++++++++++++++++==============================
+#edit from here!!!!!!!!!!!!!!!!!
   
 stats <- summary_stats_1 %>%
   filter(match == TRUE) %>%
