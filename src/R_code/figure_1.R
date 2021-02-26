@@ -26,48 +26,30 @@ match_wt <- joined_data_wider %>%
   mutate(match_predict_wt = aa_predicted == aa_wt)
 
 
-# selecting the data entries where the predicted amino acid matches the 
+#data entries where the predicted amino acid matches the wt
 stats_1 <- match_wt %>%
   group_by(gene) %>%
-  summarise(freq_predict_wt = sum(match_predict_wt, na.rm = TRUE)/sum(!is.na(match_predict_wt)))
-#++++++++++++++++==============================
-#edit from here!!!!!!!!!!!!!!!!!
-  
-stats <- summary_stats_1 %>%
-  filter(match == TRUE) %>%
+  summarise(freq_predict_wt = sum(match_predict_wt, na.rm = TRUE)/sum(!is.na(match_predict_wt))) %>%
   mutate(group = "predicted aa = wt aa") %>%
   mutate(x_label = "aa \n predictions")
 
-library(tidyr)
 # now, we need to add accuracy within each class (predicted class == wt class)
-matches_2 <- joined_data %>%
-  select(c(gene, position, group, aa_class, class_freq)) %>%
-  pivot_wider(names_from = group, values_from = c(aa_class, class_freq)) %>%
-  mutate(match = aa_class_predicted == aa_class_wt) %>%
-  select(gene, position, match)
+
+match_wt_class <- joined_data_wider %>%
+  mutate(match_predict_wt_class = aa_class_predicted == aa_class_wt)
+  
+  
 
 # selecting the data entries where the predicted amino acid class matches the wt aa class.
-library(dplyr)
-stats_2 <- matches_2 %>%
-  group_by(gene, match) %>%
-  summarise(count = n()) %>%
-  mutate(freq = count / sum(count)) %>%
-  filter(match == TRUE) %>%
+stats_2 <- match_wt_class %>%
+  group_by(gene) %>%
+  summarise(freq_predict_wt = sum(match_predict_wt_class, na.rm = TRUE)/sum(!is.na(match_predict_wt_class))) %>%
   mutate(group = "predicted class = wt class") %>%
   mutate(x_label = "class \n predictions")
 
-library(tidyverse)
-library(yardstick)
-library(dplyr)
-library(ggplot2)
-library(ggpubr)
-library(cowplot)
-library(tidyr)
-library(sqldf)
-library(sinaplot)
-library(ggforce)
 
-joined_single_and_class <- rbind(stats, stats_2)
+
+joined_single_and_class <- rbind(stats_1, stats_2)
 
 custom_colors <- c("#9875bd", "#ecb613")
 
@@ -79,86 +61,74 @@ data_summary <- function(x) {
 }
 
 a <- joined_single_and_class %>%
-  ggplot(aes(y = freq, x = x_label, fill = group)) +
+  ggplot(aes(y = freq_predict_wt, x = x_label, fill = group)) +
   geom_violin(alpha = 0.5) +
   scale_colour_manual(values = custom_colors, aesthetics = c("colour", "fill")) +
   stat_summary(fun.data=data_summary) +
   ggtitle(label = "CNN Predictions Compared to \n Wild Type") +
   theme_cowplot() + 
-  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "none") +
+  theme(plot.title = element_text(hjust = 0.5), 
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.grid.major.y = element_line(color = "grey92", size=0.5),
+        legend.position = "none") +
   ylab("Accuracy") +
   xlab("") +
-  coord_cartesian(ylim = c(0.06, 0.9)) +
-  scale_y_continuous(breaks = seq(0.1, 0.9, by = 0.1))
+  coord_cartesian(ylim = c(0, 1.0)) +
+  scale_y_continuous(
+    breaks = seq(0, 1.0, by = 0.1),
+    expand = c(0, 0))
   
 
-stats %>%
-  summarise(mean = mean(freq))
+stats_1 %>%
+  summarise(mean = mean(freq_predict_wt))
 # mean = 0.751
 
 stats_2 %>%
-  summarise(mean = mean(freq))
+  summarise(mean = mean(freq_predict_wt))
 # mean = 0.829
 
 #===================================================================================
 # b) check if predicted aa is the most frequent aa in the alignment (consensus)
 #===================================================================================
-matches_3 <- joined_data %>%
-  pivot_wider(names_from = group, values_from = c(aa, freq, aa_class, class_freq)) %>%
-  mutate(match = aa_predicted == aa_natural_max) %>%
-  select(gene, position, match)
+match_cons <- joined_data_wider %>%
+  mutate(match_predict_cons = aa_predicted == aa_natural_max)
 
-# restart r
-library(dplyr)
-stats_3 <- matches_3 %>%
-  group_by(gene, match) %>%
-  summarise(count = n()) %>%
-  mutate(freq = count / sum(count)) %>%
-  filter(match == TRUE) %>%
+stats_3 <- match_cons %>%
+  group_by(gene) %>%
+  summarise(freq_predict_cons = sum(match_predict_cons, na.rm = TRUE)/sum(!is.na(match_predict_cons))) %>%
   mutate(group = "predicted aa = consensus") %>%
   mutate(x_label = "aa \n predictions")
 
-library(tidyr)
-
-matches_4 <- joined_data %>%
-  select(c(gene, position, group, aa_class, class_freq)) %>%
-  pivot_wider(names_from = group, values_from = c(aa_class,class_freq)) %>%
-  mutate(match = aa_class_predicted == aa_class_natural_max) %>%
-  select(gene, position, match)
   
-stats_4 <- matches_4 %>%
-  group_by(gene, match) %>%
-  summarise(count = n()) %>%
-  mutate(freq = count / sum(count)) %>%
-  filter(match == TRUE) %>%
+match_cons_class <- joined_data_wider %>%
+  mutate(match_predict_cons_class = aa_class_predicted == aa_class_natural_max)
+  
+stats_4 <- match_cons_class %>%
+  group_by(gene) %>%
+  summarise(freq_predict_cons = sum(match_predict_cons_class, na.rm = TRUE)/sum(!is.na(match_predict_cons_class))) %>%
   mutate(group = "predicted class = consensus") %>%
   mutate(x_label = "class \n predictions")
 
-library(tidyverse)
-library(yardstick)
-library(dplyr)
-library(ggplot2)
-library(ggpubr)
-library(cowplot)
-library(tidyr)
-library(sqldf)
-library(sinaplot)
-library(ggforce)
 
 joined_consensus <- rbind(stats_3, stats_4)
 
 b <- joined_consensus %>%
-  ggplot(aes(y = freq, x = x_label, fill = group)) +
+  ggplot(aes(y = freq_predict_cons, x = x_label, fill = group)) +
   geom_violin(alpha = 0.5) + 
   scale_colour_manual(values = custom_colors, aesthetics = c("colour", "fill")) +
   stat_summary(fun.data=data_summary) +
   ggtitle(label = "CNN Predictions Compared to \n Alignment Consensus") +
   theme_cowplot() + 
-  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "none") +
+  theme(plot.title = element_text(hjust = 0.5), 
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.grid.major.y = element_line(color = "grey92", size=0.5),
+        legend.position = "none") +
   ylab("Accuracy") +
   xlab("") +
-  coord_cartesian(ylim = c(0.06, 0.9)) +
-  scale_y_continuous(breaks = seq(0.1, 0.9, by = 0.1))
+  coord_cartesian(ylim = c(0, 1.0)) +
+  scale_y_continuous(
+    breaks = seq(0.0, 1.0, by = 0.1),
+    expand = c(0,0))
   
 
 stats_3 %>%
@@ -176,4 +146,4 @@ stats_4 %>%
 
 figure_1 <- plot_grid(a, b, nrow = 1, align="h", labels = c('A', 'B'))
 
-ggsave(filename = "figure_1.png", plot = figure_1, width = 10, height = 4)
+ggsave(filename = "../../analysis/figures/figure_1_new.png", plot = figure_1, width = 10, height = 4)

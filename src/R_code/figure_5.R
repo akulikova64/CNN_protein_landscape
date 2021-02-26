@@ -81,6 +81,7 @@ data_summary <- function(x) {
   return(c(y=m,ymin=ymin,ymax=ymax))
 }
 
+# plot 5
 figure_5 <- stats_for_plot2 %>%
   filter(condition == "freq_predict_cons") %>%
   ggplot(aes(y = freq, x = perc_sim)) +
@@ -125,6 +126,7 @@ stats_for_class_plot <- class_match %>%
 stats_for_class_plot2 <- stats_for_class_plot %>%
   pivot_longer(c(freq_predict_cons, freq_wt_cons), values_to = "freq", names_to = "condition")
 
+# plot 5b
 figure_5b <- stats_for_class_plot2 %>%
   filter(condition == "freq_predict_cons") %>%
   ggplot(aes(y = freq, x = perc_sim)) +
