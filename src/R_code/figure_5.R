@@ -101,7 +101,8 @@ figure_5 <- stats_for_plot2 %>%
   scale_y_continuous(
     name = "Accuracy",
     limits = c(0, 1.0),
-    breaks = seq(from = 0, to = 1.0, by = 0.1)) + NULL
+    breaks = seq(from = 0, to = 1.0, by = 0.1),
+    expand = c(0, 0)) + NULL
   scale_fill_manual(
     values = c(freq_predict_cons = "#9875bd", freq_wt_cons = "#ecb613"),
     name = "Condition",
@@ -116,9 +117,36 @@ class_match <- all_data_wider %>%
   mutate(match_predict_cons = aa_class_predicted == aa_class_natural_max,
          match_wt_cons = aa_class_wt == aa_class_natural_max)
 
+stats_for_class_plot <- class_match %>%
+  group_by(gene, perc_sim) %>%
+  summarise(freq_predict_cons = sum(match_predict_cons, na.rm = TRUE)/sum(!is.na(match_predict_cons)),
+            freq_wt_cons = sum(match_wt_cons, na.rm = TRUE)/sum(!is.na(match_wt_cons)))
 
+stats_for_class_plot2 <- stats_for_class_plot %>%
+  pivot_longer(c(freq_predict_cons, freq_wt_cons), values_to = "freq", names_to = "condition")
 
+figure_5b <- stats_for_class_plot2 %>%
+  filter(condition == "freq_predict_cons") %>%
+  ggplot(aes(y = freq, x = perc_sim)) +
+  geom_violin(fill = "#ecb613", alpha = 0.5) + 
+  geom_hline(yintercept = 0.829, linetype = "dashed", color = "red", alpha = 0.4, size = 0.85) +
+  #geom_sina(size = 0.2) +
+  stat_summary(fun.data=data_summary) +
+  theme_cowplot() + 
+  theme(plot.title = element_text(hjust = 0.5), 
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.grid.major.y = element_line(color = "grey92", size=0.5)) +
+  labs(title = "CNN Predictions Compared to Alignment Consensus", 
+       subtitle = "Within Class Predictions") +
+  scale_x_discrete(
+    name = "Percent Sequence Similarity of Alignment") +
+  scale_y_continuous(
+    name = "Accuracy",
+    limits = c(0, 1.0),
+    breaks = seq(from = 0, to = 1.0, by = 0.1),
+    expand = c(0, 0))
 
+ggsave(filename = "../../analysis/figures/figure_5b.png", plot = figure_5b, width = 8, height = 4)
 
 #testing...
 
