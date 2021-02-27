@@ -2,8 +2,8 @@
 # comparing neff predicted vs. neff natural accors different alignments similarities. 
 library(tidyverse)
 library(cowplot)
-library(sinaplot)
-library(ggforce)
+
+
 
 # reading csv files
 natural_var <- read.csv(file="./stats_align_all.csv", header=TRUE, sep=",")
@@ -59,17 +59,8 @@ natural_var_100 <- natural_var_100 %>%
 joined_100 <- rbind(natural_var_100, cnn_var2) %>%
   mutate(perc_sim = "(80-100%]") 
 
-#0-100
-natural_var_all <-natural_var %>%
-  select(position, gene, n_eff, n_eff_class) %>%
-  mutate(group = "natural")
-
-joined_0_to_100 <- rbind(natural_var_all, cnn_var2) %>%
-  mutate(perc_sim = "(0-100%]") 
   
-
-
-all_joined <- rbind(joined_20, joined_40, joined_60, joined_80, joined_100, joined_0_to_100)
+all_joined <- rbind(joined_20, joined_40, joined_60, joined_80, joined_100)
 
 all_joined_wide <- all_joined %>%
   select(-n_eff_class) %>%
@@ -87,26 +78,47 @@ data_summary <- function(x) {
   return(c(y=m,ymin=ymin,ymax=ymax))
 }
 
-a <- cor %>%
-  ggplot(aes(x = perc_sim, y = cor)) +
-  geom_violin(fill = "#9875bd", alpha = 0.5) + 
+# getting rid of the genes that are not present in all 5 groups
+cor_wider <- cor %>%
+  pivot_wider(names_from = perc_sim, values_from = cor)
+
+cor_reduced <- na.omit(cor_wider)
+
+cor_reduced <- cor_reduced %>%
+  pivot_longer(cols =  c("(0-20%]", "(20-40%]", "(40-60%]", "(60-80%]", "(80-100%]"), names_to = "perc_sim", values_to = "cor")
+
+a <- cor_reduced %>%
+  group_by(gene) %>%
+  mutate(
+    # pick y value corresponding to y3
+    color_y = sum(cor * (perc_sim == "(0-20%]"))
+  ) %>%
+  ggplot(aes(x = perc_sim, y = cor, group = gene, color = color_y, fill = color_y)) +
+  #geom_violin(fill = "#9875bd", alpha = 0.5) + 
   #geom_sina() +
-  stat_summary(fun.data=data_summary) +
-  labs(title = "Comparing Predicted Neff to Natural Neff", 
-       subtitle = "Amino Acid Predictions") +
+  geom_point(
+    shape = 21, color = "black",
+    size = 1, position = position_jitter(width = 0.05, height = 0, seed = 123)
+  ) +
+  geom_path(size = 0.25, position = position_jitter(width = 0.05, height = 0, seed = 123)) +
+  #geom_line(aes(group = gene), alpha = 0.5, size = 0.7) +
+  #stat_summary(fun.data=data_summary) +
+  #labs(title = "Comparing Predicted Neff to Natural Neff", 
+  #     subtitle = "Amino Acid Predictions") +
   theme_cowplot() + 
-  theme(plot.title = element_text(hjust = 0.5), 
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.grid.major.y = element_line(color = "grey92", size=0.5)
-  ) +
+  #theme(plot.title = element_text(hjust = 0.5), 
+    #plot.subtitle = element_text(hjust = 0.5),
+    #panel.grid.major.y = element_line(color = "grey92", size=0.5),
+    #legend.position = "none") +
   scale_x_discrete(
-    name = "Percent Sequence Similarity of Alignment"
-  ) +
+    name = "Percent Sequence Similarity of Alignment") +
   scale_y_continuous(
     name = "Correlation Coefficients",
     limits = c(-0.4, 0.6),
     breaks = seq(from = -0.4, to = 0.6, by = 0.1),
-    expand = c(0, 0)) 
+    expand = c(0, 0)) +
+  #scale_color_discrete_qualitative(palette = "Dynamic")
+  scale_color_viridis_c(aesthetics = c("color", "fill"), option = "E") 
 
 #Now making a plot for classes
 
@@ -124,12 +136,13 @@ b <- cor_2 %>%
   geom_violin(fill = "#ecb613", alpha = 0.5) + 
   #geom_sina() +
   stat_summary(fun.data=data_summary) +
-  labs(title = "Comparing Predicted Neff to Natural Neff", 
-       subtitle = "Within Class Predictions") +
+  #labs(title = "Comparing Predicted Neff to Natural Neff", 
+       #subtitle = "Within Class Predictions") +
   theme_cowplot() + 
   theme(plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5),
-        panel.grid.major.y = element_line(color = "grey92", size=0.5)
+        panel.grid.major.y = element_line(color = "grey92", size=0.5),
+        legend.position = "none"
   ) +
   scale_x_discrete(
     name = "Percent Sequence Similarity of Alignment"
@@ -143,8 +156,8 @@ b <- cor_2 %>%
 
 figure_1 <- plot_grid(a, b, nrow = 2, align="v", labels = c('A', 'B'))
 
-ggsave(filename = "../../analysis/figures/figure_6a.png", plot = a, width = 10, height = 4)
-ggsave(filename = "../../analysis/figures/figure_6b.png", plot = b, width = 10, height = 4)
+ggsave(filename = "../../analysis/figures/figure_6a.png", plot = a, width = 8, height = 4)
+ggsave(filename = "../../analysis/figures/figure_6b.png", plot = b, width = 8, height = 5)
 
 
 
