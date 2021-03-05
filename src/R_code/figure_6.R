@@ -91,25 +91,25 @@ a <- cor_reduced %>%
   group_by(gene) %>%
   mutate(
     # pick y value corresponding to y3
-    color_y = sum(cor * (perc_sim == "(0-20%]"))
+    color_y = sum(cor * (perc_sim == "(80-100%]"))
   ) %>%
   ggplot(aes(x = perc_sim, y = cor, group = gene, color = color_y, fill = color_y)) +
   #geom_violin(fill = "#9875bd", alpha = 0.5) + 
   #geom_sina() +
-  geom_point(
-    shape = 21, color = "black",
-    size = 1, position = position_jitter(width = 0.05, height = 0, seed = 123)
-  ) +
   geom_path(size = 0.25, position = position_jitter(width = 0.05, height = 0, seed = 123)) +
   #geom_line(aes(group = gene), alpha = 0.5, size = 0.7) +
   #stat_summary(fun.data=data_summary) +
   #labs(title = "Comparing Predicted Neff to Natural Neff", 
   #     subtitle = "Amino Acid Predictions") +
-  theme_cowplot() + 
   #theme(plot.title = element_text(hjust = 0.5), 
-    #plot.subtitle = element_text(hjust = 0.5),
-    #panel.grid.major.y = element_line(color = "grey92", size=0.5),
-    #legend.position = "none") +
+  #  plot.subtitle = element_text(hjust = 0.5),
+  #  panel.grid.major.y = element_line(color = "grey92", size=0.5),
+  #  legend.position = "none") +
+  #theme_cowplot() +
+  geom_point(
+    shape = 21, color = "black",
+    size = 2, position = position_jitter(width = 0.05, height = 0, seed = 123)
+  ) +
   scale_x_discrete(
     name = "Percent Sequence Similarity of Alignment") +
   scale_y_continuous(
@@ -118,7 +118,9 @@ a <- cor_reduced %>%
     breaks = seq(from = -0.4, to = 0.6, by = 0.1),
     expand = c(0, 0)) +
   #scale_color_discrete_qualitative(palette = "Dynamic")
-  scale_color_viridis_c(aesthetics = c("color", "fill"), option = "E") 
+  scale_color_viridis_c(aesthetics = c("color", "fill"), option = "E") +
+  theme_bw() +
+  theme(legend.position="none")
 
 #Now making a plot for classes
 
