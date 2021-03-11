@@ -1,8 +1,7 @@
 # continuation of figure 2. 
-# comparing neff predicted vs. neff natural accors different alignments similarities. 
+# comparing neff predicted vs. neff natural across different alignments similarities. 
 library(tidyverse)
 library(cowplot)
-
 
 
 # reading csv files
@@ -94,18 +93,7 @@ a <- cor_reduced %>%
     color_y = sum(cor * (perc_sim == "(80-100%]"))
   ) %>%
   ggplot(aes(x = perc_sim, y = cor, group = gene, color = color_y, fill = color_y)) +
-  #geom_violin(fill = "#9875bd", alpha = 0.5) + 
-  #geom_sina() +
   geom_path(size = 0.25, position = position_jitter(width = 0.05, height = 0, seed = 123)) +
-  #geom_line(aes(group = gene), alpha = 0.5, size = 0.7) +
-  #stat_summary(fun.data=data_summary) +
-  #labs(title = "Comparing Predicted Neff to Natural Neff", 
-  #     subtitle = "Amino Acid Predictions") +
-  #theme(plot.title = element_text(hjust = 0.5), 
-  #  plot.subtitle = element_text(hjust = 0.5),
-  #  panel.grid.major.y = element_line(color = "grey92", size=0.5),
-  #  legend.position = "none") +
-  #theme_cowplot() +
   geom_point(
     shape = 21, color = "black",
     size = 2, position = position_jitter(width = 0.05, height = 0, seed = 123)
@@ -117,8 +105,7 @@ a <- cor_reduced %>%
     limits = c(-0.4, 0.6),
     breaks = seq(from = -0.4, to = 0.6, by = 0.1),
     expand = c(0, 0)) +
-  #scale_color_discrete_qualitative(palette = "Dynamic")
-  scale_color_viridis_c(aesthetics = c("color", "fill"), option = "E") +
+  scale_color_viridis_c(aesthetics = c("color", "fill"), option = "E", begin = 0.3, end = 1) +
   theme_bw() +
   theme(legend.position="none")
 
@@ -161,8 +148,98 @@ figure_1 <- plot_grid(a, b, nrow = 2, align="v", labels = c('A', 'B'))
 ggsave(filename = "../../analysis/figures/figure_6a.png", plot = a, width = 8, height = 4)
 ggsave(filename = "../../analysis/figures/figure_6b.png", plot = b, width = 8, height = 5)
 
+#================================================================================================================
+#making a plot for each class of amino acids in the wt
 
+cnn_data <- read.csv(file = "./cnn_wt_max_freq.csv", header=TRUE, sep=",")
+  
+wt_classes <- cnn_data %>%
+  filter(group == "wt") %>%
+  select(gene, position, aa_class)
 
+wt_labels <- inner_join(wt_classes, all_joined)
+
+wt_labels_wide <- wt_labels %>%
+  select(-n_eff_class) %>%
+  pivot_wider(names_from = group, values_from = n_eff)
+
+cor_3 <- wt_labels_wide %>%
+  na.omit() %>%
+  group_by(gene, perc_sim, aa_class) %>%
+  summarise(cor = cor(natural, predicted)) 
+
+cor3_wider <- cor_3 %>%
+  pivot_wider(names_from = perc_sim, values_from = cor)
+
+cor3_reduced <- na.omit(cor3_wider)
+
+cor3_reduced <- cor3_reduced %>%
+  pivot_longer(cols =  c("(0-20%]", "(20-40%]", "(40-60%]", "(60-80%]", "(80-100%]"), names_to = "perc_sim", values_to = "cor")
+
+plot_c <- cor3_reduced %>%
+  group_by(gene, aa_class) %>%
+  mutate(
+    # pick y value corresponding to y3
+    color_y = sum(cor * (perc_sim == "(80-100%]"))
+  ) %>%
+  ggplot(aes(x = perc_sim, y = cor, group = gene, color = color_y, fill = color_y)) +
+  geom_path(size = 0.25, position = position_jitter(width = 0.05, height = 0, seed = 123)) +
+  geom_point(
+    shape = 21, color = "black",
+    size = 2, position = position_jitter(width = 0.05, height = 0, seed = 123)) +
+  facet_wrap(vars(aa_class)) +
+  scale_x_discrete(
+    name = "Percent Sequence Similarity of Alignment") +
+  scale_y_continuous(
+    name = "Correlation Coefficients",
+    limits = c(-0.4, 0.6),
+    breaks = seq(from = -0.4, to = 0.6, by = 0.1),
+    expand = c(0, 0)) +
+  scale_color_viridis_c(aesthetics = c("color", "fill"), option = "E") +
+  theme_bw() +
+  theme(legend.position="none") 
+
+plot_c
+
+ggsave(filename = "../../analysis/figures/figure_6c.png", plot = plot_c, width = 10, height = 6)
+
+#================================================================================================================
+#tests and extraneous code:
+
+a <- cor_reduced %>%
+  group_by(gene) %>%
+  mutate(
+    # pick y value corresponding to y3
+    color_y = sum(cor * (perc_sim == "(80-100%]"))
+  ) %>%
+  ggplot(aes(x = perc_sim, y = cor, group = gene, color = color_y, fill = color_y)) +
+  #geom_violin(fill = "#9875bd", alpha = 0.5) + 
+  #geom_sina() +
+  geom_path(size = 0.25, position = position_jitter(width = 0.05, height = 0, seed = 123)) +
+  #geom_line(aes(group = gene), alpha = 0.5, size = 0.7) +
+  #stat_summary(fun.data=data_summary) +
+  #labs(title = "Comparing Predicted Neff to Natural Neff", 
+  #     subtitle = "Amino Acid Predictions") +
+  #theme(plot.title = element_text(hjust = 0.5), 
+  #  plot.subtitle = element_text(hjust = 0.5),
+  #  panel.grid.major.y = element_line(color = "grey92", size=0.5),
+  #  legend.position = "none") +
+  #theme_cowplot() +
+  geom_point(
+    shape = 21, color = "black",
+    size = 2, position = position_jitter(width = 0.05, height = 0, seed = 123)
+  ) +
+  scale_x_discrete(
+    name = "Percent Sequence Similarity of Alignment") +
+  scale_y_continuous(
+    name = "Correlation Coefficients",
+    limits = c(-0.4, 0.6),
+    breaks = seq(from = -0.4, to = 0.6, by = 0.1),
+    expand = c(0, 0)) +
+  #scale_color_discrete_qualitative(palette = "Dynamic")
+  scale_color_viridis_c(aesthetics = c("color", "fill"), option = "E") +
+  theme_bw() +
+  theme(legend.position="none")
 
 
 

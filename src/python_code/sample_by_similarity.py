@@ -11,7 +11,7 @@ import sys
 
 #loading a fasta aln file:
 
-MAX_LIM = 0.2
+MAX_LIM = 0.4
 MIN_LIM = MAX_LIM - 0.2
 
 def compare(aln_seq, ref_seq):

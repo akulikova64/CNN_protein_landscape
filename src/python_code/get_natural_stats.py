@@ -93,7 +93,7 @@ def get_class_freq(freq, length):
   return class_freq
 
 # --------- main -------------------------
-group_name = "100"
+group_name = "40"
 output_path = "../../output/output_PSICOV/stats_align_files/stats_align_" + group_name + ".csv"
 input_path = "../../data/PSICOV/aln_filtered/aln_" + group_name + "/" #input multiple sequence aligments path
 

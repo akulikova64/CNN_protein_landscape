@@ -1,11 +1,5 @@
 library(tidyverse)
-library(yardstick)
-library(ggpubr)
 library(cowplot)
-library(sqldf)
-library(sinaplot)
-library(dplyr)
-library(ggforce)
 
 # reading csv files
 natural_var <- read.csv(file="./stats_align_all.csv", header=TRUE, sep=",")
@@ -38,7 +32,7 @@ n_eff_averaged <- n_eff_unique %>%
   group_by(gene, position, group.x, group.y) %>%
   summarise(n_eff = mean(n_eff), freq = mean(freq))
 
-library(dplyr)
+
 # finding all the corelations of all proteins
 cor_1 <- n_eff_averaged %>%
   select(gene, n_eff, freq) %>%

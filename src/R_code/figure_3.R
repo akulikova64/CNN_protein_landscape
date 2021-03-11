@@ -1,13 +1,6 @@
 library(tidyverse)
-library(yardstick)
-library(dplyr)
-library(ggplot2)
-library(ggpubr)
 library(cowplot)
-library(tidyr)
-library(sqldf)
-library(sinaplot)
-library(ggforce)
+
 # figure 3. 
 
 # heat maps. 
@@ -20,37 +13,52 @@ joined_data <- rbind(x = cnn_data, y = natural_data)
 
 for_heat <- joined_data %>%
   select(group, aa, position, gene) %>%
-  pivot_wider(names_from = group, values_from = aa) %>%
-  count(wt, predicted) %>%
-  mutate(freq = n/sum(n))
+  pivot_wider(names_from = group, values_from = aa) 
 
-# sanity check:
-for_heat %>% 
-  select(freq) %>%
-  sum() #should be equal to 1, but equals 0.984
+for_heat_sums <- for_heat %>%
+  group_by(wt, predicted) %>%
+  summarise(count = n())
   
-for_heat <- na.omit(for_heat)
+for_heat_sums2 <- for_heat_sums %>%
+  group_by(wt) %>%
+  mutate(freq = count/sum(count))
+  
+  
+for_heat_sums2 <- na.omit(for_heat_sums2)
 
 custom_colors <- c("#9875bd", "#ecb613")
 
-a <- for_heat %>%
-  ggplot(aes(x = wt, y = predicted, fill = freq)) +
-  geom_tile() +
-  scale_fill_gradient(low = "#e5ddee", high = "#3e2b55") +
+a <- for_heat_sums2 %>%
+  mutate(freq = ifelse(wt == predicted, NA, freq)) %>%
+  ggplot(aes(x = wt, y = predicted, alpha = freq)) +
+  geom_tile(fill = "#3e2b55") +
+  #scale_fill_gradient(low = "#e5ddee", high = "#3e2b55") +
+  scale_alpha_continuous() +
   xlab("WT Residue") +
   ylab("Predicted Residue") +
   theme(panel.background = element_blank()) +
   theme_cowplot()
 
+a
+
+# by classes:
+
 for_heat_2 <- joined_data %>%
   select(group, aa_class, position, gene) %>%
-  pivot_wider(names_from = group, values_from = aa_class) %>%
-  count(wt, predicted) %>%
-  mutate(freq = n/sum(n))
+  pivot_wider(names_from = group, values_from = aa_class) 
 
-for_heat_2 <- na.omit(for_heat_2)
+for_heat_sums <- for_heat_2 %>%
+  group_by(wt, predicted) %>%
+  summarise(count = n())
 
-a2 <- for_heat_2 %>%
+for_heat_sums2 <- for_heat_sums %>%
+  group_by(wt) %>%
+  mutate(freq = count/sum(count))
+
+
+for_heat_sums2 <- na.omit(for_heat_sums2)
+
+a2 <- for_heat_sums2 %>%
   ggplot(aes(x = wt, y = predicted, fill = freq)) +
   geom_tile() +
   scale_fill_gradient(low = "#fdf8e8", high = "#463606") +
@@ -59,15 +67,25 @@ a2 <- for_heat_2 %>%
   theme(panel.background = element_blank()) +
   theme_cowplot()
 
+a2
+
+# how heat maps of predicting the consensus
+
 for_heat_3 <- joined_data %>%
   select(group, aa, position, gene) %>%
-  pivot_wider(names_from = group, values_from = aa) %>%
-  count(natural_max, predicted) %>%
-  mutate(freq = n/sum(n))
+  pivot_wider(names_from = group, values_from = aa) 
 
-for_heat_3 <- na.omit(for_heat_3)
+for_heat_sums <- for_heat_3 %>%
+  group_by(natural_max, predicted) %>%
+  summarise(count = n())
 
-b <- for_heat_3 %>%
+for_heat_sums2 <- for_heat_sums %>%
+  group_by(natural_max) %>%
+  mutate(freq = count/sum(count))
+
+for_heat_3 <- na.omit(for_heat_sums2)
+
+plot_b <- for_heat_3 %>%
   ggplot(aes(x = natural_max, y = predicted, fill = freq)) +
   geom_tile() +
   scale_fill_gradient(low = "#e5ddee", high = "#3e2b55") +
@@ -76,15 +94,24 @@ b <- for_heat_3 %>%
   theme(panel.background = element_blank()) +
   theme_cowplot()
 
+plot_b
+
+# predicting consensus class heat map:
 for_heat_4 <- joined_data %>%
   select(group, aa_class, position, gene) %>%
-  pivot_wider(names_from = group, values_from = aa_class) %>%
-  count(natural_max, predicted) %>%
-  mutate(freq = n/sum(n))
+  pivot_wider(names_from = group, values_from = aa_class) 
 
-for_heat_4 <- na.omit(for_heat_4)
+for_heat_sums <- for_heat_4 %>%
+  group_by(natural_max, predicted) %>%
+  summarise(count = n())
 
-b2 <- for_heat_4 %>%
+for_heat_sums2 <- for_heat_sums %>%
+  group_by(natural_max) %>%
+  mutate(freq = count/sum(count))
+
+for_heat_4 <- na.omit(for_heat_sums2)
+
+plot_b2 <- for_heat_4 %>%
   ggplot(aes(x = natural_max, y = predicted, fill = freq)) +
   geom_tile() +
   scale_fill_gradient(low = "#fdf8e8", high = "#463606") +
@@ -93,12 +120,13 @@ b2 <- for_heat_4 %>%
   theme(panel.background = element_blank()) +
   theme_cowplot()
 
+plot_b2
 #==============================================================
 # making and saving the plot
 #==============================================================
 
 figure_3a <- plot_grid(a, a2, nrow = 1, align="h", labels = c('A', 'B'))
-figure_3b <- plot_grid(b, b2, nrow = 1, align="h", labels = c('C', 'D'))
+figure_3b <- plot_grid(plot_b, plot_b2, nrow = 1, align="h", labels = c('C', 'D'))
 
 ggsave(filename = "../../analysis/figures/figure_3a_new.png", plot = figure_3a, width = 14, height = 5.5)
 ggsave(filename = "../../analysis/figures/figure_3b_new.png", plot = figure_3b, width = 14, height = 5.5)

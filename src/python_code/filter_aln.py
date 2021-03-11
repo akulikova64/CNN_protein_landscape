@@ -3,8 +3,9 @@ import os
 import sys
 from shutil import copyfile
 
-perc_sims = ["20","40","60","80", "100"]
-min_lines = 50 * 2
+#perc_sims = ["20","40","60","80", "100"]
+perc_sims = ["40"]
+min_lines = 10 * 2
 
 for perc_sim in perc_sims:
   input_path = "../../data/PSICOV/aln_" + perc_sim + "/"
