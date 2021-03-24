@@ -235,8 +235,23 @@ ggsave(filename = "../../analysis/figures/figure_6c.png", plot = plot_c, width =
 # SUPPLEMENTARY PLOT: boxplot of number of seqs per protein for each seq similarity group:
 #================================================================================================
 
+seq_counts <- read.csv(file = "./seq_counts.csv", header=TRUE, sep=",")
 
+plot_d <- seq_counts %>%
+ggplot(aes(x = factor(group), y = seq_count)) +
+  geom_boxplot() +
+  scale_x_discrete(
+    name = "% Sequence Similarity \n of Alignment",
+    breaks = c(20, 40, 60, 80, 100),
+    labels = c("(0-20%]", "(20-40%]", "(40-60%]", "(60-80%]", "(80-100%]")) + 
+  scale_y_log10(
+    name = "Sequence Count per Protein",
+    breaks = c(0, 10, 100, 1000, 10000, 60000),
+    labels = c("0", "10", "100", "1000", "10000", "60000")) +
+  theme_cowplot()
 
+plot_d
+  
 
 
 
