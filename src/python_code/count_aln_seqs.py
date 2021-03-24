@@ -5,16 +5,13 @@ import os
 groups = ["20","40","60","80","100"]
 min_seqs = "10"
 
-with open("seq_counts.csv", "w", newline='\n', encoding='utf-8') as counts_table:
+with open("../../output/output_PSICOV/seq_counts.csv", "w", newline='\n', encoding='utf-8') as counts_table:
   writer = csv.writer(counts_table) 
   writer.writerow(['group', 'gene', 'seq_count'])
 
   for group_name in groups:
-    if group_name != "20" or group_name != "100":
-      input_path = "../../data/PSICOV/aln_filtered_" + str(min_seqs) + "/aln_" + group_name + "/" #multiple sequence aligments path
-    else:
-      input_path = "../../data/PSICOV/aln_" + group_name + "/"
-
+    input_path = "../../data/PSICOV/aln_filtered_" + str(min_seqs) + "/aln_" + group_name + "/" #multiple sequence aligments path
+    
     #list of protein sequence alignments:
     protein_list = os.listdir(input_path)
 
