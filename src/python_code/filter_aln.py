@@ -3,13 +3,14 @@ import os
 import sys
 from shutil import copyfile
 
-#perc_sims = ["20","40","60","80", "100"]
-perc_sims = ["40"]
-min_lines = 10 * 2
+perc_sims = ["20","40","60","80","100"]
+#perc_sims = ["40"]
+min_seqs = 10
+min_lines = min_seqs * 2
 
 for perc_sim in perc_sims:
   input_path = "../../data/PSICOV/aln_" + perc_sim + "/"
-  output_path = "../../data/PSICOV/aln_filtered/aln_" + perc_sim + "/"
+  output_path = "../../data/PSICOV/aln_filtered_" + str(min_seqs) + "/aln_" + perc_sim + "/"
 
   protein_list = os.listdir(input_path)
 

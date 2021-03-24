@@ -93,9 +93,15 @@ def get_class_freq(freq, length):
   return class_freq
 
 # --------- main -------------------------
-group_name = "40"
+group_name = "100"
+min_seqs = "10" #minimum sequences per alignment (choose out of the ones made)
 output_path = "../../output/output_PSICOV/stats_align_files/stats_align_" + group_name + ".csv"
-input_path = "../../data/PSICOV/aln_filtered/aln_" + group_name + "/" #input multiple sequence aligments path
+
+# for group names: 40, 60 and 80, alignments must be longer than "min_seqs". 
+if group_name != "20" or group_name != "100":
+  input_path = "../../data/PSICOV/aln_filtered_" + str(min_seqs) + "/aln_" + group_name + "/" #input multiple sequence aligments path
+else:
+  input_path = "../../data/PSICOV/aln_" + group_name + "/" #input multiple sequence aligments path
 
 #list of protein sequence alignments:
 protein_list = os.listdir(input_path)
