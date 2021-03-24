@@ -10,8 +10,11 @@ with open("../../output/output_PSICOV/seq_counts.csv", "w", newline='\n', encodi
   writer.writerow(['group', 'gene', 'seq_count'])
 
   for group_name in groups:
-    input_path = "../../data/PSICOV/aln_filtered_" + str(min_seqs) + "/aln_" + group_name + "/" #multiple sequence aligments path
-    
+    if group_name != "20" or group_name != "100":
+      input_path = "../../data/PSICOV/aln_filtered_" + str(min_seqs) + "/aln_" + group_name + "/" #multiple sequence aligments path
+    else:
+      input_path = "../../data/PSICOV/aln_" + group_name + "/"
+
     #list of protein sequence alignments:
     protein_list = os.listdir(input_path)
 
