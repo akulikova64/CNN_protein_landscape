@@ -21,25 +21,65 @@ for_heat_sums <- for_heat %>%
   
 for_heat_sums2 <- for_heat_sums %>%
   group_by(wt) %>%
-  mutate(freq = count/sum(count))
-  
+  mutate(
+    freq = count/sum(count),
+    freq = ifelse(wt == predicted, NA, freq)) %>%
+  ungroup()
   
 for_heat_sums2 <- na.omit(for_heat_sums2)
 
 custom_colors <- c("#9875bd", "#ecb613")
 
-a <- for_heat_sums2 %>%
-  mutate(freq = ifelse(wt == predicted, NA, freq)) %>%
-  ggplot(aes(x = wt, y = predicted, alpha = freq)) +
-  geom_tile(fill = "#3e2b55") +
+for_heatplot_final <- for_heat_sums2 %>%
+  mutate(
+    predicted = fct_relevel(predicted, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P"),
+    wt = fct_relevel(wt, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")) 
+ 
+#add aa class label: 
+calc_class <- function(x) {
+  
+  aliphatic = c("G", "A", "V", "M", "I", "L")
+  aromatic = c("F", "Y", "W")
+  polar = c("S", "C", "N", "T", "Q")
+  negative = c("D", "E")
+  positive = c("H", "K", "R")
+    
+  if (x %in% aliphatic) {
+    return("aliphatic")
+  }
+  if (x %in% aromatic) {
+    return("aromatic")
+  }
+  if (x %in% polar) {
+    return("polar")
+  }
+  if (x %in% negative) {
+    return("negative")
+  }
+  if (x %in% positive) {
+    return("positive")
+  }
+  if (x == "P") {
+    return("proline")
+  }
+  
+}
+
+for_heatplot_with_classes <- for_heatplot_final %>%
+  mutate(wt_class = map_chr(wt, calc_class))
+  
+plot_a1 <- for_heatplot_with_classes %>% 
+  ggplot(aes(x = wt, y = predicted, alpha = freq, fill = wt_class)) +
+  geom_tile() + 
   #scale_fill_gradient(low = "#e5ddee", high = "#3e2b55") +
-  scale_alpha_continuous() +
+  scale_alpha_continuous(guide = guide_legend(order = 2)) +
+  scale_fill_manual(values = c("red", "green", "blue", "yellow", "magenta", "cyan"), guide = guide_legend(order = 1) ) +
   xlab("WT Residue") +
   ylab("Predicted Residue") +
   theme(panel.background = element_blank()) +
   theme_cowplot()
 
-a
+plot_a1
 
 # by classes:
 
@@ -53,15 +93,24 @@ for_heat_sums <- for_heat_2 %>%
 
 for_heat_sums2 <- for_heat_sums %>%
   group_by(wt) %>%
-  mutate(freq = count/sum(count))
+  mutate(freq = count/sum(count),
+         freq = ifelse(wt == predicted, NA, freq)) %>%
+  ungroup()
 
 
 for_heat_sums2 <- na.omit(for_heat_sums2)
 
-a2 <- for_heat_sums2 %>%
-  ggplot(aes(x = wt, y = predicted, fill = freq)) +
-  geom_tile() +
-  scale_fill_gradient(low = "#fdf8e8", high = "#463606") +
+for_plot_a2 <- for_heat_sums2 %>%
+  mutate(
+    wt = fct_relevel(wt, "aliphatic", "polar", "negative", "positive", "aromatic", "proline"),
+    predicted = fct_relevel(predicted, "aliphatic", "polar", "negative", "positive", "aromatic", "proline")
+  )
+
+a2 <- for_plot_a2 %>%
+  ggplot(aes(x = wt, y = predicted, alpha = freq)) +
+  geom_tile(fill = "#463606") +
+  #scale_fill_gradient(low = "#fdf8e8", high = "#463606") +
+  scale_alpha_continuous() +
   xlab("WT Residue Class") +
   ylab("Predicted Residue Class") +
   theme(panel.background = element_blank()) +
@@ -125,7 +174,7 @@ plot_b2
 # making and saving the plot
 #==============================================================
 
-figure_3a <- plot_grid(a, a2, nrow = 1, align="h", labels = c('A', 'B'))
+figure_3a <- plot_grid(plot_1a, a2, nrow = 1, align="h", labels = c('A', 'B'))
 figure_3b <- plot_grid(plot_b, plot_b2, nrow = 1, align="h", labels = c('C', 'D'))
 
 ggsave(filename = "../../analysis/figures/figure_3a_new.png", plot = figure_3a, width = 14, height = 5.5)
