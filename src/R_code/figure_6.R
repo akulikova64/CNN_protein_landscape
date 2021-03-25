@@ -2,6 +2,15 @@
 # comparing neff predicted vs. neff natural across different alignments similarities. 
 library(tidyverse)
 library(cowplot)
+library(broom)
+
+# useful function for getting mean and standard of deviation (for violin plots):
+data_summary <- function(x) {
+  m <- mean(x)
+  ymin <- m-sd(x)
+  ymax <- m+sd(x)
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
 
 #set working directory to:
 #C:\Users\avch\Desktop\Natural_var_project\output\output_PSICOV\
@@ -67,19 +76,30 @@ all_joined_wide <- all_joined %>%
   select(-n_eff_class) %>%
   pivot_wider(names_from = group, values_from = n_eff)
 
+#===============================================================================
+# Finding correlation coefficients and p-values
+#===============================================================================
+
+# fitting a linear model to data (getting R^2 and p-values)
+lm_summary <- all_joined_wide %>%
+  na.omit() %>%
+  nest(data = -c(gene, perc_sim)) %>%
+  mutate(
+    fit = map(data, ~lm(natural ~ predicted, data = .x)),
+    glance_out = map(fit, glance)
+    ) %>%
+  select(gene, perc_sim, glance_out) %>%
+  unnest(cols = glance_out)
+lm_summary
+
+
+# an alternative method for finding the correlations:
 cor <- all_joined_wide %>%
   na.omit() %>%
   group_by(gene, perc_sim) %>%
   summarise(cor = cor(natural, predicted)) 
 
-data_summary <- function(x) {
-  m <- mean(x)
-  ymin <- m-sd(x)
-  ymax <- m+sd(x)
-  return(c(y=m,ymin=ymin,ymax=ymax))
-}
-
-# getting rid of the genes that are not present in all 5 groups
+# getting rid of the genes that are not present in all 5 groups:
 cor_wider <- cor %>%
   pivot_wider(names_from = perc_sim, values_from = cor)
 
@@ -88,6 +108,10 @@ cor_reduced <- na.omit(cor_wider)
 cor_reduced <- cor_reduced %>%
   pivot_longer(cols =  c("(0-20%]", "(20-40%]", "(40-60%]", "(60-80%]", "(80-100%]"), names_to = "perc_sim", values_to = "cor")
 
+
+#===========================================================================================
+# plot_a (correlations bw neff predicted and neff natural across seq similarity groups)
+#=============================================================================================
 plot_a <- cor_reduced %>%
   group_by(gene) %>%
   mutate(
@@ -95,11 +119,13 @@ plot_a <- cor_reduced %>%
     color_y = sum(cor * (perc_sim == "(80-100%]"))
   ) %>%
   ggplot(aes(x = perc_sim, y = cor, group = gene, color = color_y, fill = color_y)) +
-  geom_path(size = 0.25, position = position_jitter(width = 0.05, height = 0, seed = 123)) +
+  geom_path(
+    size = 0.25, 
+    position = position_jitter(width = 0.05, height = 0, seed = 123)) +
   geom_point(
     shape = 21, color = "black",
-    size = 2, position = position_jitter(width = 0.05, height = 0, seed = 123)
-  ) +
+    size = 2, 
+    position = position_jitter(width = 0.05, height = 0, seed = 123)) +
   scale_x_discrete(
     name = "Percent Sequence Similarity of Alignment") +
   scale_y_continuous(
@@ -113,7 +139,9 @@ plot_a <- cor_reduced %>%
 
 plot_a
 
-#Now making a plot for classes
+#===============================================================================================
+#plot_b (Now making a plot for neff natural CLASSES vs neff predicted CLASSES)
+#===============================================================================================
 
 all_joined_wide2 <- all_joined %>%
   select(-n_eff) %>%
@@ -239,20 +267,23 @@ seq_counts <- read.csv(file = "./seq_counts.csv", header=TRUE, sep=",")
 
 plot_d <- seq_counts %>%
 ggplot(aes(x = factor(group), y = seq_count)) +
-  geom_boxplot() +
+  geom_boxplot(fill = "grey86") +
   scale_x_discrete(
-    name = "% Sequence Similarity \n of Alignment",
+    name = "\n % Sequence Similarity of Alignment",
     breaks = c(20, 40, 60, 80, 100),
     labels = c("(0-20%]", "(20-40%]", "(40-60%]", "(60-80%]", "(80-100%]")) + 
   scale_y_log10(
     name = "Sequence Count per Protein",
     breaks = c(0, 10, 100, 1000, 10000, 60000),
     labels = c("0", "10", "100", "1000", "10000", "60000")) +
-  theme_cowplot()
+  theme_cowplot(14)+
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+  )
 
 plot_d
   
-
+ggsave(filename = "../../analysis/figures/figure_6d.png", plot = plot_d, width = 10, height = 6)
 
 
 
