@@ -72,7 +72,7 @@ plot_a1 <- for_heatplot_with_classes %>%
   ggplot(aes(x = wt, y = predicted, alpha = freq, fill = wt_class)) +
   geom_tile() + 
   #scale_fill_gradient(low = "#e5ddee", high = "#3e2b55") +
-  scale_alpha_continuous(guide = guide_legend(order = 2)) +
+  scale_alpha_continuous(guide = guide_legend(order = 2, reverse = TRUE)) +
   scale_fill_manual(values = c("red", "green", "blue", "yellow", "magenta", "cyan"), guide = guide_legend(order = 1) ) +
   xlab("WT Residue") +
   ylab("Predicted Residue") +

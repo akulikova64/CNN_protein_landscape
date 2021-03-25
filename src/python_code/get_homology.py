@@ -1,3 +1,4 @@
+from Bio import SeqIO
 import csv
 import os
 # get the average % homology of all alignments
@@ -7,31 +8,34 @@ def get_percent(aln_seq, ref_seq):
   for i, j in zip(aln_seq, ref_seq):
     assert j != "-"
     if i == j:
-      count_similar += 1s
+      count_similar += 1
 
   similarity = float(count_similar/len(ref_seq))
   return similarity
 
-#------------------------------------main-------------------------------------------------
+#---------------main-------------------------
 input_path = "../../data/PSICOV/aln_fasta/"
 output_path = "../../data/PSICOV/" 
 
-protein_list = os.listdir(input_path)
 
-for protein in protein_list:
-  with open(output_path + protein, 'w') as csv_file:
+with open(output_path + "percent_homol.csv", 'w', newline='\n', encoding='utf-8') as csv_file:
+  writer = csv.writer(csv_file)
+  writer.writerow(['gene', 'percent_homol'])
+
+  protein_list = os.listdir(input_path)
+
+  for protein in protein_list:
     records = list(SeqIO.parse(input_path + protein, "fasta"))
     ref_seq = records[0].seq
-    #file.write(">reference\n") # we do not want to include the reference in the calculations
-    #file.write(str(ref_seq) + "\n")
 
+    percent_sum = 0
     for i in range(1, len(records)):
       aln_seq = records[i].seq
-      keep = compare(str(aln_seq), str(ref_seq))
+      percent_sum += get_percent(str(aln_seq), str(ref_seq))
 
-      if keep:
-        file.write(">" + str(i) + "\n")
-        file.write(str(aln_seq) + "\n")
+    percent = percent_sum/len(records)
+    writer.writerow([protein[0:4], percent])
 
+      
       
   
