@@ -132,7 +132,7 @@ p_values <- p_values %>%
 
 
 
-#ALTERNATIVE METHIOD BELOW: (skip)
+#FINDING CORRELATION COEFFS:
 # an alternative method for finding the correlations:
 cor <- all_joined_wide %>%
   na.omit() %>%
@@ -215,8 +215,7 @@ plot_a <- ggplot() +
   theme(
     legend.position = "none",
     axis.text = element_text(color = "black", size = 12),
-    panel.grid.minor = element_blank()
-  )
+    panel.grid.minor = element_blank())
 
 plot_a
 ggsave(filename = "../../analysis/figures/figure_6a.png", plot = plot_a, width = 8, height = 4)
@@ -287,8 +286,11 @@ figure_1 <- plot_grid(a, b, nrow = 2, align="v", labels = c('A', 'B'))
 
 ggsave(filename = "../../analysis/figures/figure_6b.png", plot = b, width = 8, height = 5)
 
+#==================================================================================================
 #================================================================================================================
-#making a plot for each class of amino acids in the wt
+# plot_c (making a plot for each class of amino acids in the wt)
+#================================================================================================================
+#=====================================================================================================
 
 cnn_data <- read.csv(file = "./cnn_wt_max_freq.csv", header=TRUE, sep=",")
   
@@ -302,6 +304,42 @@ wt_labels_wide <- wt_labels %>%
   select(-n_eff_class) %>%
   pivot_wider(names_from = group, values_from = n_eff)
 
+# getting the linear model:
+# fitting a linear model to data (getting R^2 and p-values)
+lm_summary_3 <- wt_labels_wide %>%
+  na.omit() %>%
+  nest(data = -c(gene, perc_sim, aa_class)) %>%
+  mutate(
+    fit = map(data, ~lm(natural ~ predicted, data = .x)),
+    glance_out = map(fit, glance)
+  ) %>%
+  select(gene, perc_sim, aa_class, glance_out) %>%
+  unnest(cols = glance_out)
+lm_summary_3
+
+# getting rid of the genes that are not present in all 5 groups:
+p_values_3 <- lm_summary_3 %>%
+  select(gene, perc_sim, aa_class, p.value) 
+
+
+# removing genes that are not found across all 5 similarity groups:
+p_values_wide <- p_values_3 %>%
+  pivot_wider(names_from = perc_sim, values_from = p.value)
+
+p_values_reduced <- na.omit(p_values_wide)
+
+# making both dataframes longer again for plotting:
+p_values_3 <- p_values_reduced %>%
+  pivot_longer(
+    cols = -c(gene, aa_class),
+    names_to = "perc_sim", 
+    values_to = c("p_value"))
+
+# labeling the significant p-values:
+p_values_3 <- p_values_3 %>%
+  mutate(signif = ifelse(p_value <= 0.05, TRUE, FALSE))
+
+#getting the correlation coefficients
 cor_3 <- wt_labels_wide %>%
   na.omit() %>%
   group_by(gene, perc_sim, aa_class) %>%
@@ -315,32 +353,77 @@ cor3_reduced <- na.omit(cor3_wider)
 cor3_reduced <- cor3_reduced %>%
   pivot_longer(cols =  c("(0-20%]", "(20-40%]", "(40-60%]", "(60-80%]", "(80-100%]"), names_to = "perc_sim", values_to = "cor")
 
-plot_c <- cor3_reduced %>%
+
+# filtering for the correlations that are significant:
+joined_cors <- inner_join(p_values_3, cor3_reduced)
+
+sig_cor <- joined_cors %>%
+  filter(signif == TRUE) %>%
+  select(cor, perc_sim, gene, aa_class)
+
+# filtering for the correlations that are **NOT** significant:
+not_signif <- joined_cors %>%
+  filter(signif == FALSE) %>%
+  select(cor, perc_sim, gene, aa_class)
+
+#getting values for coloring the significant dots and all lines:
+sig_cor <- sig_cor %>%
   group_by(gene, aa_class) %>%
   mutate(
     # pick y value corresponding to y3
     color_y = sum(cor * (perc_sim == "(80-100%]"))
-  ) %>%
-  ggplot(aes(x = perc_sim, y = cor, group = gene, color = color_y, fill = color_y)) +
-  geom_path(size = 0.25, position = position_jitter(width = 0.05, height = 0, seed = 123)) +
+  ) 
+
+all_data <- cor3_reduced %>%
+  group_by(gene, aa_class) %>%
+  mutate(
+    # pick y value corresponding to y3
+    color_y = sum(cor * (perc_sim == "(80-100%]"))
+  ) 
+
+
+plot_c <- ggplot() +
+  geom_path(
+    data = all_data,
+    aes(x = perc_sim, y = cor, group = gene, color = color_y),
+    size = 0.25, 
+    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
   geom_point(
-    shape = 21, color = "black",
-    size = 2, position = position_jitter(width = 0.05, height = 0, seed = 123)) +
+    data = not_signif,
+    aes(x = perc_sim, y = cor, group = gene),
+    shape = 21, 
+    color = "black",
+    fill = "white",
+    size = 2, 
+    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
+  geom_point(
+    data = sig_cor,
+    aes(x = perc_sim, y = cor, group = gene, fill = color_y),
+    shape = 21, 
+    color = "black",
+    size = 2, 
+    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
   facet_wrap(vars(aa_class)) +
   scale_x_discrete(
-    name = "Percent Sequence Similarity of Alignment") +
+    name = "% Sequence Similarity of Alignment") +
   scale_y_continuous(
     name = "Correlation Coefficients",
     limits = c(-0.4, 0.6),
     breaks = seq(from = -0.4, to = 0.6, by = 0.1),
     expand = c(0, 0)) +
-  scale_color_viridis_c(aesthetics = c("color", "fill"), option = "E") +
-  theme_bw() +
-  theme(legend.position="none") 
+  scale_color_gradient(
+    aesthetics = c("color", "fill"), 
+    high = "#ffd966", 
+    low = "#080845") +
+  theme_bw(12) +
+  theme(
+    legend.position = "none",
+    axis.text = element_text(color = "black", size = 12),
+    panel.grid.minor = element_blank())
 
 plot_c
 
-ggsave(filename = "../../analysis/figures/figure_6c.png", plot = plot_c, width = 10, height = 6)
+ggsave(filename = "../../analysis/figures/figure_6c.png", plot = plot_c, width = 12, height = 6)
 
 #==============================================================================================
 # SUPPLEMENTARY PLOT: boxplot of number of seqs per protein for each seq similarity group:
