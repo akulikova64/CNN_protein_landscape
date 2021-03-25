@@ -92,7 +92,47 @@ lm_summary <- all_joined_wide %>%
   unnest(cols = glance_out)
 lm_summary
 
+# getting rid of the genes that are not present in all 5 groups:
+lm_summary <- lm_summary %>%
+  select(gene, perc_sim, r.squared, p.value) 
 
+# making two dataframes for correlation coefficients and p-values:
+cor_coeffs <- lm_summary %>%
+  select(gene, perc_sim, r.squared)
+
+p_values <- lm_summary %>%
+  select(gene, perc_sim, p.value)
+
+# removing genes that are not found across all 5 similarity groups:
+cor_coeffs_wide <- cor_coeffs %>%
+  pivot_wider(names_from = perc_sim, values_from = r.squared)
+
+p_values_wide <- p_values %>%
+  pivot_wider(names_from = perc_sim, values_from = p.value)
+
+cor_coeffs_reduced <- na.omit(cor_coeffs_wide)
+p_values_reduced <- na.omit(p_values_wide)
+
+# making both dataframes longer again for plotting:
+cor_coeffs <- cor_coeffs_reduced %>%
+  pivot_longer(
+    cols = -gene, 
+    names_to = "perc_sim", 
+    values_to = c("r_squared"))
+
+p_values <- p_values_reduced %>%
+  pivot_longer(
+    cols = -gene, 
+    names_to = "perc_sim", 
+    values_to = c("p_value"))
+
+# labeling the significant p-values:
+p_values <- p_values %>%
+  mutate(signif = ifelse(p_value <= 0.05, TRUE, FALSE))
+
+
+
+#ALTERNATIVE METHIOD BELOW: (skip)
 # an alternative method for finding the correlations:
 cor <- all_joined_wide %>%
   na.omit() %>%
@@ -108,36 +148,78 @@ cor_reduced <- na.omit(cor_wider)
 cor_reduced <- cor_reduced %>%
   pivot_longer(cols =  c("(0-20%]", "(20-40%]", "(40-60%]", "(60-80%]", "(80-100%]"), names_to = "perc_sim", values_to = "cor")
 
+# filtering for the correlations that are significant:
+joined_cors <- inner_join(p_values, cor_reduced)
+
+sig_cor <- joined_cors %>%
+  filter(signif == TRUE) %>%
+  select(cor, perc_sim, gene)
+
+# filtering for the correlations that are **NOT** significant:
+not_signif <- joined_cors %>%
+  filter(signif == FALSE) %>%
+  select(cor, perc_sim, gene)
+
 
 #===========================================================================================
 # plot_a (correlations bw neff predicted and neff natural across seq similarity groups)
 #=============================================================================================
-plot_a <- cor_reduced %>%
+sig_cor <- sig_cor %>%
   group_by(gene) %>%
   mutate(
     # pick y value corresponding to y3
     color_y = sum(cor * (perc_sim == "(80-100%]"))
-  ) %>%
-  ggplot(aes(x = perc_sim, y = cor, group = gene, color = color_y, fill = color_y)) +
+  ) 
+
+all_data <- cor_reduced %>%
+  group_by(gene) %>%
+  mutate(
+    # pick y value corresponding to y3
+    color_y = sum(cor * (perc_sim == "(80-100%]"))
+  ) 
+  
+
+plot_a <- ggplot() +
   geom_path(
+    data = all_data,
+    aes(x = perc_sim, y = cor, group = gene, color = color_y),
     size = 0.25, 
-    position = position_jitter(width = 0.05, height = 0, seed = 123)) +
+    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
   geom_point(
-    shape = 21, color = "black",
+    data = not_signif,
+    aes(x = perc_sim, y = cor, group = gene),
+    shape = 21, 
+    color = "black",
+    fill = "white",
     size = 2, 
-    position = position_jitter(width = 0.05, height = 0, seed = 123)) +
+    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
+  geom_point(
+    data = sig_cor,
+    aes(x = perc_sim, y = cor, group = gene, fill = color_y),
+    shape = 21, 
+    color = "black",
+    size = 2, 
+    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
   scale_x_discrete(
-    name = "Percent Sequence Similarity of Alignment") +
+    name = "% Sequence Similarity of Alignment") +
   scale_y_continuous(
     name = "Correlation Coefficients",
     limits = c(-0.4, 0.6),
     breaks = seq(from = -0.4, to = 0.6, by = 0.1),
     expand = c(0, 0)) +
-  scale_color_viridis_c(aesthetics = c("color", "fill"), option = "E", begin = 0.3, end = 1) +
-  theme_bw() +
-  theme(legend.position="none")
+  scale_color_gradient(
+    aesthetics = c("color", "fill"), 
+    high = "#ffd966", 
+    low = "#080845") +
+  theme_bw(12) +
+  theme(
+    legend.position = "none",
+    axis.text = element_text(color = "black", size = 12),
+    panel.grid.minor = element_blank()
+  )
 
 plot_a
+ggsave(filename = "../../analysis/figures/figure_6a.png", plot = plot_a, width = 8, height = 4)
 
 #===============================================================================================
 #plot_b (Now making a plot for neff natural CLASSES vs neff predicted CLASSES)
@@ -190,18 +272,19 @@ b <- cor_2 %>%
   scale_x_discrete(
     name = "Percent Sequence Similarity of Alignment") +
   scale_y_continuous(
-    name = "Correlation Coefficients",
+    name = "Correlation Coefficients \n",
     limits = c(-0.4, 0.6),
     breaks = seq(from = -0.4, to = 0.6, by = 0.1),
     expand = c(0, 0)) +
   scale_color_viridis_c(aesthetics = c("color", "fill"), option = "E", begin = 0.3, end = 1) +
   theme_bw() +
-  theme(legend.position="none")
+  theme(
+    legend.position="none")
 
 
 figure_1 <- plot_grid(a, b, nrow = 2, align="v", labels = c('A', 'B'))
 
-ggsave(filename = "../../analysis/figures/figure_6a.png", plot = a, width = 8, height = 4)
+
 ggsave(filename = "../../analysis/figures/figure_6b.png", plot = b, width = 8, height = 5)
 
 #================================================================================================================
