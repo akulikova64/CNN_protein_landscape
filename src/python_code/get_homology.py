@@ -15,7 +15,7 @@ def get_percent(aln_seq, ref_seq):
 
 #---------------main-------------------------
 input_path = "../../data/PSICOV/aln_fasta/"
-output_path = "../../data/PSICOV/" 
+output_path = "../../output/output_PSICOV/" 
 
 
 with open(output_path + "percent_homol.csv", 'w', newline='\n', encoding='utf-8') as csv_file:
