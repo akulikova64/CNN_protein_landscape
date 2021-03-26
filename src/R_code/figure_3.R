@@ -32,7 +32,7 @@ custom_colors <- c("#9875bd", "#ecb613")
 
 for_heatplot_final <- for_heat_sums2 %>%
   mutate(
-    predicted = fct_relevel(predicted, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P"),
+    predicted = fct_rev(fct_relevel(predicted, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")),
     wt = fct_relevel(wt, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")) 
  
 #add aa class label: 
@@ -66,20 +66,41 @@ calc_class <- function(x) {
 }
 
 for_heatplot_with_classes <- for_heatplot_final %>%
-  mutate(wt_class = map_chr(wt, calc_class))
+  mutate(wt_class = map_chr(wt, calc_class)) %>%
+  mutate(class = fct_relevel(wt_class, "aliphatic", "polar", "negative", "positive", "aromatic"))
   
-plot_a1 <- for_heatplot_with_classes %>% 
-  ggplot(aes(x = wt, y = predicted, alpha = freq, fill = wt_class)) +
-  geom_tile() + 
-  #scale_fill_gradient(low = "#e5ddee", high = "#3e2b55") +
-  scale_alpha_continuous(guide = guide_legend(order = 2, reverse = TRUE)) +
-  scale_fill_manual(values = c("red", "green", "blue", "yellow", "magenta", "cyan"), guide = guide_legend(order = 1) ) +
-  xlab("WT Residue") +
-  ylab("Predicted Residue") +
-  theme(panel.background = element_blank()) +
-  theme_cowplot()
+gray_zone = tibble(
+  x = c("G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P"), 
+  y = c("G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P"), 
+  value = rep(1, times=20))
+
+
+plot_a1 <- ggplot() +
+  geom_tile(data = for_heatplot_with_classes, aes(x = wt, y = predicted, alpha = freq, fill = class)) + 
+  scale_alpha_continuous(
+    guide = guide_legend(order = 2, reverse = TRUE),
+    range = c(0.2, 2)) +
+  scale_fill_manual(
+    values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),
+    guide = guide_legend(order = 1) ) +
+  geom_tile(data = gray_zone, aes(x,y), fill = "grey57") +
+  scale_x_discrete(
+    name = "WT Residue",
+    expand = c(0,0)) +
+  scale_y_discrete(
+    name = "Predicted Residue",
+    expand = c(0,0)) +
+  labs(fill = "WT Class", alpha = "Frequency") +
+  theme_cowplot(12) +
+  theme(
+    panel.background = element_blank(),
+    axis.text = element_text(color = "black", size = 12)) + NULL
+    legend.position = "none")
+
 
 plot_a1
+
+ggsave(filename = "../../analysis/figures/figure_3a_1.png", plot = plot_1a, width = 8, height = 7)
 
 # by classes:
 
@@ -103,20 +124,37 @@ for_heat_sums2 <- na.omit(for_heat_sums2)
 for_plot_a2 <- for_heat_sums2 %>%
   mutate(
     wt = fct_relevel(wt, "aliphatic", "polar", "negative", "positive", "aromatic", "proline"),
-    predicted = fct_relevel(predicted, "aliphatic", "polar", "negative", "positive", "aromatic", "proline")
+    predicted = fct_rev(fct_relevel(predicted, "aliphatic", "polar", "negative", "positive", "aromatic", "proline"))
   )
 
-a2 <- for_plot_a2 %>%
-  ggplot(aes(x = wt, y = predicted, alpha = freq)) +
-  geom_tile(fill = "#463606") +
-  #scale_fill_gradient(low = "#fdf8e8", high = "#463606") +
-  scale_alpha_continuous() +
-  xlab("WT Residue Class") +
-  ylab("Predicted Residue Class") +
-  theme(panel.background = element_blank()) +
-  theme_cowplot()
+gray_zone2 = tibble(
+  x = c("aliphatic", "polar", "negative", "positive", "aromatic", "proline"), 
+  y = c("aliphatic", "polar", "negative", "positive", "aromatic", "proline"), 
+  value = rep(1, times=6))
 
-a2
+plot_a2 <- ggplot() +
+  geom_tile(data = for_plot_a2, aes(x = wt, y = predicted, alpha = freq, fill = wt)) +
+  geom_tile(data = gray_zone2, aes(x,y), fill = "grey57") +
+  scale_alpha_continuous(
+    guide = guide_legend(order = 2, reverse = TRUE),
+    range = c(0.1, 2)) +
+  scale_fill_manual(
+    values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),
+    guide = guide_legend(order = 1) ) +
+  scale_x_discrete(
+    name = "WT Residue Class",
+    expand = c(0,0)) +
+  scale_y_discrete(
+    name = "Predicted Residue Class",
+    expand = c(0,0)) +
+  labs(fill = "WT Class", alpha = "Frequency") +
+  theme_cowplot(12) +
+  theme(
+    panel.background = element_blank(),
+    axis.text = element_text(color = "black", size = 12))
+
+plot_a2
+ggsave(filename = "../../analysis/figures/figure_3a_new.png", plot = figure_3a, width = 14, height = 5.5)
 
 # how heat maps of predicting the consensus
 
@@ -174,7 +212,7 @@ plot_b2
 # making and saving the plot
 #==============================================================
 
-figure_3a <- plot_grid(plot_1a, a2, nrow = 1, align="h", labels = c('A', 'B'))
+figure_3a <- plot_grid(plot_1a, plot_a2, nrow = 1, align="h", labels = c('A', 'B'))
 figure_3b <- plot_grid(plot_b, plot_b2, nrow = 1, align="h", labels = c('C', 'D'))
 
 ggsave(filename = "../../analysis/figures/figure_3a_new.png", plot = figure_3a, width = 14, height = 5.5)
