@@ -5,6 +5,8 @@ library(ggforce)
 
 # loading data
 cnn_data <- read.csv(file = "./cnn_wt_max_freq.csv", header=TRUE, sep=",")
+natural_data_all <- read.csv(file = "./natural_max_freq.csv", header=TRUE, sep=",")
+natural_data_20 <- read.csv(file = "./natural_max_freq_files/natural_max_freq_20.csv", header=TRUE, sep=",")
 natural_data_20 <- read.csv(file = "./natural_max_freq_files/natural_max_freq_20.csv", header=TRUE, sep=",")
 natural_data_40 <- read.csv(file = "./natural_max_freq_files/natural_max_freq_40.csv", header=TRUE, sep=",")
 natural_data_60 <- read.csv(file = "./natural_max_freq_files/natural_max_freq_60.csv", header=TRUE, sep=",")
@@ -17,6 +19,10 @@ joined_data_40 <- rbind(x = cnn_data, y = natural_data_40)
 joined_data_60 <- rbind(x = cnn_data, y = natural_data_60)
 joined_data_80 <- rbind(x = cnn_data, y = natural_data_80)
 joined_data_100 <- rbind(x = cnn_data, y = natural_data_100)
+joined_data_all <- rbind(x = cnn_data, y = natural_data_all)
+
+joined_data_all <- joined_data_all %>%
+  mutate(perc_sim = "(0-100]")
 
 joined_data_20 <- joined_data_20 %>%
   mutate(perc_sim = "(0-20%]") 
@@ -33,7 +39,7 @@ joined_data_80 <- joined_data_80 %>%
 joined_data_100 <- joined_data_100 %>%
   mutate(perc_sim = "(80-100%]")
 
-all_data <- rbind(joined_data_20, joined_data_40, joined_data_60, joined_data_80, joined_data_100)
+all_data <- rbind(joined_data_all, joined_data_20, joined_data_40, joined_data_60, joined_data_80, joined_data_100)
 
 all_data_trimmed <- all_data %>%
   filter(!gene %in% c('1dbx', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc'))
@@ -103,7 +109,7 @@ figure_5 <- stats_for_plot2 %>%
     name = "Accuracy",
     limits = c(0, 1.0),
     breaks = seq(from = 0, to = 1.0, by = 0.1),
-    expand = c(0, 0)) + NULL
+    expand = c(0, 0)) 
   scale_fill_manual(
     values = c(freq_predict_cons = "#9875bd", freq_wt_cons = "#ecb613"),
     name = "Condition",

@@ -190,7 +190,7 @@ plot_b2 <- for_plot_b2 %>%
     range = c(0.1, 2)) +
   scale_fill_manual(
     values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),
-    guide = guide_legend(order = 1) ) +
+    guide = 'none' ) +
   scale_x_discrete(
     name = "Consensus Residue Class",
     expand = c(0,0)) +
@@ -223,10 +223,8 @@ for_heat_4 <- na.omit(for_heat_sums2)
 
 for_heatplot_final <- for_heat_4 %>%
   mutate(
-    predicted = fct_rev(fct_relevel(predicted, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")),
-    natural_max = fct_relevel(natural_max, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")) %>%
     mutate(natural_class = map_chr(natural_max, calc_class)) %>%
-    mutate(natural_class = fct_relevel(natural_class, "aliphatic", "polar", "negative", "positive", "aromatic"))
+    mutate(natural_class = fct_relevel(natural_class, "aliphatic", "polar", "negative", "positive", "aromatic")))
 
 
 
@@ -238,11 +236,11 @@ plot_b2 <- for_heatplot_final %>%
                 fill = natural_class)) +
   geom_tile() + 
   scale_alpha_continuous(
-    guide = guide_legend(order = 2, reverse = TRUE),
+    guide = guide_legend(order = 1, reverse = TRUE),
     range = c(0.2, 2)) +
   scale_fill_manual(
     values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),
-    guide = guide_legend(order = 1) ) +
+    guide = 'none') +
   scale_x_discrete(
     name = "Consensus Residue",
     expand = c(0,0)) +

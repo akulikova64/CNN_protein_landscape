@@ -2,6 +2,7 @@
 # comparing neff predicted vs. neff natural across different alignments similarities. 
 library(tidyverse)
 library(cowplot)
+
 library(broom)
 
 # useful function for getting mean and standard of deviation (for violin plots):
@@ -415,15 +416,16 @@ plot_c <- ggplot() +
     aesthetics = c("color", "fill"), 
     high = "#ffd966", 
     low = "#080845") +
-  theme_bw(12) +
+  theme_bw(14) +
   theme(
     legend.position = "none",
-    axis.text = element_text(color = "black", size = 12),
-    panel.grid.minor = element_blank())
+    axis.text = element_text(color = "black", size = 14),
+    panel.grid.minor = element_blank(),
+    strip.text.x = element_text(size = 16))
 
 plot_c
 
-ggsave(filename = "../../analysis/figures/figure_6c.png", plot = plot_c, width = 12, height = 6)
+ggsave(filename = "../../analysis/figures/figure_6c.png", plot = plot_c, width = 13.5, height = 6)
 
 #==============================================================================================
 # SUPPLEMENTARY PLOT: boxplot of number of seqs per protein for each seq similarity group:
@@ -445,6 +447,7 @@ ggplot(aes(x = factor(group), y = seq_count)) +
   theme_cowplot(14)+
   theme(
     axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16)
   )
 
 plot_d

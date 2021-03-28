@@ -78,6 +78,7 @@ a <- joined_single_and_class %>%
     breaks = seq(0, 1.0, by = 0.1),
     expand = c(0, 0))
   
+a
 
 stats_1 %>%
   summarise(mean = mean(freq_predict_wt))
@@ -130,6 +131,7 @@ b <- joined_consensus %>%
     breaks = seq(0.0, 1.0, by = 0.1),
     expand = c(0,0))
   
+b
 
 stats_3 %>%
   summarise(mean = mean(freq))
