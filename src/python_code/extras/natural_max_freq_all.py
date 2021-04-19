@@ -55,11 +55,10 @@ def get_aa_class(wt_aa, class_freqs):
   return aa_class, class_freq
 
 #--------- main ------------------------------------------
-box_size = "40"
-group_name = "20"
+box_size = "30"
 input_path_1 = "../../../data/PSICOV_box_" + box_size + "/output/cnn_wt_max_freq.csv"
-input_path_2 = "../../../output/output_PSICOV/stats_align_files/stats_align_" + group_name + ".csv"
-output_path = "../../../data/PSICOV_box_" + box_size + "/output/natural_max_freq_files/natural_max_freq_" + group_name + ".csv" 
+input_path_2 = "../../../output/output_PSICOV/stats_align_all.csv"
+output_path = "../../../data/PSICOV_box_" + box_size + "/output/natural_max_freq_files/natural_max_freq_all.csv" 
 
 wt = {}
 # reading in CNN max frequencies file
@@ -124,12 +123,3 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
       except KeyError:
         print(gene)
       # group = "natural_neff"
-
-
-
-
-
-
-
-
-

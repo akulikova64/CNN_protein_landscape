@@ -100,7 +100,7 @@ def get_class_freq_2(wt_aa, line):
   return aa_class, class_freq
 
 #--------------- main ----------------------------
-box_size = "40"
+box_size = "30"
 input_path = "../../../data/PSICOV_box_" + box_size + "/PSICOV_CNN_output/"
 output_path = "../../../data/PSICOV_box_" + box_size + "/output/cnn_wt_max_freq.csv"
 

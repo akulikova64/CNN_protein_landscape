@@ -52,7 +52,7 @@ def get_class_freq(freq):
   return class_dict, class_freq_list
 
 # --------------- main ------------------------------------
-box_size = "40"
+box_size = "30"
 output_path = "../../data/PSICOV_box_" + box_size + "/output/stats_cnn.csv"
 input_path = "../../data/PSICOV_box_" + box_size + "/PSICOV_CNN_output/"
 

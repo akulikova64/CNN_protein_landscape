@@ -8,9 +8,10 @@ library(ggforce)
 # a) Basic stats (% match across all genes)
 #===============================================================================
 
+# set working directory to: "Desktop/Natural_var_project/"
 # loading data
-cnn_data <- read.csv(file = "./cnn_wt_max_freq.csv", header=TRUE, sep=",")
-natural_data <- read.csv(file = "./natural_max_freq.csv", header=TRUE, sep=",")
+cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
+natural_data <- read.csv(file = "./data/PSICOV_box_20/output/natural_max_freq_files/natural_max_freq_all.csv", header=TRUE, sep=",")
 
 joined_data <- rbind(x = cnn_data, y = natural_data)
 
@@ -60,7 +61,7 @@ data_summary <- function(x) {
   return(c(y=m,ymin=ymin,ymax=ymax))
 }
 
-a <- joined_single_and_class %>%
+plot_a <- joined_single_and_class %>%
   ggplot(aes(y = freq_predict_wt, x = x_label, fill = group)) +
   geom_violin(alpha = 0.5) +
   scale_colour_manual(values = custom_colors, aesthetics = c("colour", "fill")) +
@@ -78,7 +79,7 @@ a <- joined_single_and_class %>%
     breaks = seq(0, 1.0, by = 0.1),
     expand = c(0, 0))
   
-a
+plot_a
 
 stats_1 %>%
   summarise(mean = mean(freq_predict_wt))
