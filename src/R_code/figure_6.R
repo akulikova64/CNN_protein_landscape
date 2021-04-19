@@ -205,7 +205,7 @@ plot_a <- ggplot() +
     name = "% Sequence Similarity of Alignment") +
   scale_y_continuous(
     name = "Correlation Coefficients",
-    limits = c(-0.4, 0.6),
+    limits = c(-0.4, 0.7),
     breaks = seq(from = -0.4, to = 0.6, by = 0.1),
     expand = c(0, 0)) +
   scale_color_gradient(
@@ -219,7 +219,7 @@ plot_a <- ggplot() +
     panel.grid.minor = element_blank())
 
 plot_a
-ggsave(filename = "../../analysis/figures/figure_6a.png", plot = plot_a, width = 8, height = 4)
+ggsave(filename = "./analysis/figures/figure_6a_box_40.png", plot = plot_a, width = 8, height = 4)
 
 #===============================================================================================
 #plot_b (Now making a plot for neff natural CLASSES vs neff predicted CLASSES)
@@ -280,7 +280,7 @@ b <- cor_2 %>%
   theme_bw() +
   theme(
     legend.position="none")
-
+b
 
 figure_1 <- plot_grid(a, b, nrow = 2, align="v", labels = c('A', 'B'))
 
@@ -409,8 +409,8 @@ plot_c <- ggplot() +
     name = "% Sequence Similarity of Alignment") +
   scale_y_continuous(
     name = "Correlation Coefficients",
-    limits = c(-0.4, 0.6),
-    breaks = seq(from = -0.4, to = 0.6, by = 0.1),
+    limits = c(-0.4, 1.0),
+    breaks = seq(from = -0.4, to = 1.0, by = 0.1),
     expand = c(0, 0)) +
   scale_color_gradient(
     aesthetics = c("color", "fill"), 
@@ -425,7 +425,7 @@ plot_c <- ggplot() +
 
 plot_c
 
-ggsave(filename = "../../analysis/figures/figure_6c.png", plot = plot_c, width = 13.5, height = 6)
+ggsave(filename = "./analysis/figures/figure_6c_box_40.png", plot = plot_c, width = 13.5, height = 6)
 
 #==============================================================================================
 # SUPPLEMENTARY PLOT: boxplot of number of seqs per protein for each seq similarity group:

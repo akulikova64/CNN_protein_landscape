@@ -52,8 +52,9 @@ def get_class_freq(freq):
   return class_dict, class_freq_list
 
 # --------------- main ------------------------------------
-output_path = "../data/PSICOV/output/stats_cnn.csv"
-input_path = "../data/PSICOV/PSICOV_CNN_output/"
+box_size = "40"
+output_path = "../../data/PSICOV_box_" + box_size + "/output/stats_cnn.csv"
+input_path = "../../data/PSICOV_box_" + box_size + "/PSICOV_CNN_output/"
 
 
 gene_files = os.listdir(input_path)

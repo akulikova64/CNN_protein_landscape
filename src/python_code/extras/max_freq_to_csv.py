@@ -100,8 +100,9 @@ def get_class_freq_2(wt_aa, line):
   return aa_class, class_freq
 
 #--------------- main ----------------------------
-input_path = '../../data/PSICOV/PSICOV_CNN_output/'
-output_path = "../../data/PSICOV/output/cnn_wt_max_freq.csv"
+box_size = "40"
+input_path = "../../../data/PSICOV_box_" + box_size + "/PSICOV_CNN_output/"
+output_path = "../../../data/PSICOV_box_" + box_size + "/output/cnn_wt_max_freq.csv"
 
 fileList = os.listdir(input_path)
 # old: aaList = ['H', 'E', 'D',  'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']

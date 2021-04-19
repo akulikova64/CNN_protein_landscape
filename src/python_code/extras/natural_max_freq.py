@@ -55,8 +55,9 @@ def get_aa_class(wt_aa, class_freqs):
   return aa_class, class_freq
 
 #--------- main ------------------------------------------
+box_size = 12
 group_name = "100"
-input_path_1 = "../../../output/output_PSICOV/cnn_wt_max_freq.csv"
+input_path_1 = "../../../output/output_PSICOV_box_" + box_size + "/cnn_wt_max_freq.csv"
 input_path_2 = "../../../output/output_PSICOV/stats_align_files/stats_align_" + group_name + ".csv"
 output_path = "../../../output/output_PSICOV/natural_max_freq_files/natural_max_freq_" + group_name + ".csv" 
 

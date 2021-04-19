@@ -10,7 +10,7 @@ import sys
 # make sure that name of fasta file matches with name the pdb sequences. 
 
 #loading a fasta aln file:
-
+box_size = "12"
 MAX_LIM = 0.4
 MIN_LIM = MAX_LIM - 0.2
 
@@ -45,8 +45,8 @@ def get_reference_from_CNN_data():
 
 #CNN_reference = get_reference_from_CNN_data() #should be the same as records[0] in alignment
 
-input_path = "../../data/PSICOV/aln_fasta/"
-output_path = "../../data/PSICOV/" + "aln_" + str(int(MAX_LIM*100)) + "/"
+input_path = "../../data/PSICOV_box_" + box_size + "/aln_fasta/"
+output_path = "../../data/PSICOV_box_" + box_size + "/" + "aln_" + str(int(MAX_LIM*100)) + "/"
 
 protein_list = os.listdir(input_path)
 

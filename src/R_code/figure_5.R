@@ -109,12 +109,13 @@ figure_5 <- stats_for_plot2 %>%
     name = "Accuracy",
     limits = c(0, 1.0),
     breaks = seq(from = 0, to = 1.0, by = 0.1),
-    expand = c(0, 0)) 
+    expand = c(0, 0)) +
   scale_fill_manual(
     values = c(freq_predict_cons = "#9875bd", freq_wt_cons = "#ecb613"),
     name = "Condition",
     labels = c("predicted = consensus", "wt = consensus"))
   
+figure_5
 
 ggsave(filename = "../../analysis/figures/figure_5.png", plot = figure_5, width = 8, height = 4)
 
@@ -153,6 +154,8 @@ figure_5b <- stats_for_class_plot2 %>%
     limits = c(0, 1.0),
     breaks = seq(from = 0, to = 1.0, by = 0.1),
     expand = c(0, 0))
+
+figure_5b
 
 ggsave(filename = "../../analysis/figures/figure_5b.png", plot = figure_5b, width = 8, height = 4)
 
