@@ -1,7 +1,10 @@
 library(tidyverse)
 library(cowplot)
-library(sinaplot)
 library(ggforce)
+
+#======================
+#***BOX SIZE 20*****
+#======================
 
 # code for figure 1. 
 #==============================================================================
@@ -16,16 +19,17 @@ natural_data <- read.csv(file = "./data/PSICOV_box_20/output/natural_max_freq_fi
 joined_data <- rbind(x = cnn_data, y = natural_data)
 
 joined_data_trimmed <- joined_data %>%
-  filter(!gene %in% c('1dbx', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc'))
-
+  filter(!gene %in% c('1dbx', '1eaz', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc', '2tps'))
 
 # check if predicted aa is the one found in the wt structure
 joined_data_wider <- joined_data_trimmed %>%
   pivot_wider(names_from = group, values_from = c(aa, freq, aa_class, class_freq))
 
+joined_data_wider <- na.omit(joined_data_wider)
+
+
 match_wt <- joined_data_wider %>%
   mutate(match_predict_wt = aa_predicted == aa_wt)
-
 
 #data entries where the predicted amino acid matches the wt
 stats_1 <- match_wt %>%
@@ -52,7 +56,8 @@ stats_2 <- match_wt_class %>%
 
 joined_single_and_class <- rbind(stats_1, stats_2)
 
-custom_colors <- c("#9875bd", "#ecb613")
+custom_fills <- c("#8c7b9d", "#c6a339")
+custom_colors <- c("#655775", "#8a7228")
 
 data_summary <- function(x) {
   m <- mean(x)
@@ -61,33 +66,37 @@ data_summary <- function(x) {
   return(c(y=m,ymin=ymin,ymax=ymax))
 }
 
-plot_a <- joined_single_and_class %>%
-  ggplot(aes(y = freq_predict_wt, x = x_label, fill = group)) +
-  geom_violin(alpha = 0.5) +
-  scale_colour_manual(values = custom_colors, aesthetics = c("colour", "fill")) +
-  stat_summary(fun.data=data_summary) +
-  ggtitle(label = "CNN Predictions Compared to \n Wild Type") +
-  theme_cowplot() + 
-  theme(plot.title = element_text(hjust = 0.5), 
+plot_20 <- joined_single_and_class %>%
+  ggplot(aes(y = freq_predict_wt, x = x_label, fill = group, color = group)) +
+  geom_violin(alpha = 0.6, size = 0.7) +
+  stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
+  ggtitle(label = "20A box") +
+  theme_cowplot(12) + 
+  theme(plot.title = element_text(hjust = 0, size=12), 
         plot.subtitle = element_text(hjust = 0.5),
         panel.grid.major.y = element_line(color = "grey92", size=0.5),
         legend.position = "none") +
-  ylab("Accuracy") +
+  scale_fill_manual(values = custom_fills) +
+  scale_color_manual(values = custom_colors) +
   xlab("") +
-  coord_cartesian(ylim = c(0, 1.0)) +
   scale_y_continuous(
+    name = "Accuracy",
+    limits = c(0.0, 1.0),
     breaks = seq(0, 1.0, by = 0.1),
-    expand = c(0, 0))
+    expand = c(0, 0)) +
+  scale_x_discrete(
+    labels = 
+  )
   
-plot_a
+plot_20
 
 stats_1 %>%
   summarise(mean = mean(freq_predict_wt))
-# mean = 0.751
+# mean for box_size 20 is = 0.592
 
 stats_2 %>%
   summarise(mean = mean(freq_predict_wt))
-# mean = 0.829
+# mean for box_size 20 = 0.710
 
 #===================================================================================
 # b) check if predicted aa is the most frequent aa in the alignment (consensus)

@@ -2,6 +2,7 @@ from Bio import SeqIO
 import os
 import sys
 
+box_size = "20"
 
 # this code aligns a protein sequence alignment reference to the wild type sequence in the CNN output
 
@@ -10,10 +11,10 @@ def get_reference_from_CNN_data(name):
   ref_seq = ""
 
   try:
-    file = open("../../data/PSICOV/PSICOV_CNN_output/" + name + "_final_tot.csv", 'r')
+    file = open("../../../data/PSICOV_box_" + box_size + "/PSICOV_CNN_output/" + name + "_final_tot.csv", 'r')
   except FileNotFoundError:
     try:
-      file = open("../../data/PSICOV/PSICOV_CNN_output/" + name + ".csv", 'r')
+      file = open("../../../data/PSICOV_box_" + box_size + "/PSICOV_CNN_output/" + name + ".csv", 'r')
     except FileNotFoundError:
       return "missing"
 
@@ -42,7 +43,7 @@ def compare(aln_ref, CNN_ref):
 
   return similarity
 
-input_path = "../../data/PSICOV/aln_fasta/"
+input_path = "../../../data/PSICOV/aln_fasta/"
 protein_list = os.listdir(input_path)
 
 unaligned_count = 0

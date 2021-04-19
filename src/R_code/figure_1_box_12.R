@@ -14,12 +14,14 @@ natural_data <- read.csv(file = "./output/output_PSICOV/natural_max_freq.csv", h
 
 joined_data <- rbind(x = cnn_data, y = natural_data)
 
-joined_data_trimmed <- joined_data %>%
-  filter(!gene %in% c('1dbx', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc'))
+#joined_data_trimmed <- joined_data %>%
+  #filter(!gene %in% c('1dbx', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc'))
 
 # check if predicted aa is the one found in the wt structure
-joined_data_wider <- joined_data_trimmed %>%
+joined_data_wider <- joined_data %>%
   pivot_wider(names_from = group, values_from = c(aa, freq, aa_class, class_freq))
+
+joined_data_wider <- na.omit(joined_data_wider)
 
 match_wt <- joined_data_wider %>%
   mutate(match_predict_wt = aa_predicted == aa_wt)
@@ -36,7 +38,6 @@ stats_1 <- match_wt %>%
 
 match_wt_class <- joined_data_wider %>%
   mutate(match_predict_wt_class = aa_class_predicted == aa_class_wt)
-  
   
 
 # selecting the data entries where the predicted amino acid class matches the wt aa class.
