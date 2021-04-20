@@ -3,7 +3,7 @@ library(cowplot)
 library(ggforce)
 
 #======================
-#***BOX SIZE 20*****
+#***BOX SIZE 40*****
 #======================
 
 # code for figure 1. 
@@ -13,8 +13,8 @@ library(ggforce)
 
 # set working directory to: "Desktop/Natural_var_project/"
 # loading data
-cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
-natural_data <- read.csv(file = "./data/PSICOV_box_20/output/natural_max_freq_files/natural_max_freq_all.csv", header=TRUE, sep=",")
+cnn_data <- read.csv(file = "./data/PSICOV_box_40/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
+natural_data <- read.csv(file = "./data/PSICOV_box_40/output/natural_max_freq_files/natural_max_freq_all.csv", header=TRUE, sep=",")
 
 joined_data <- rbind(x = cnn_data, y = natural_data)
 
@@ -66,11 +66,11 @@ data_summary <- function(x) {
   return(c(y=m,ymin=ymin,ymax=ymax))
 }
 
-plot_20_a <- joined_single_and_class %>%
+plot_40_a <- joined_single_and_class %>%
   ggplot(aes(y = freq_predict_wt, x = x_label, fill = group, color = group)) +
   geom_violin(alpha = 0.6, size = 0.7) +
   stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
-  ggtitle(label = "20A Box: Predicting Wild Type") +
+  ggtitle(label = "40A Box: Predicting Wild Type") +
   theme_cowplot(12) + 
   theme(plot.title = element_text(hjust = 0, size=12), 
         plot.subtitle = element_text(hjust = 0.5),
@@ -88,7 +88,7 @@ plot_20_a <- joined_single_and_class %>%
     labels = c("Amino Acid \n Prediction", "Class \n Prediction"))
 
   
-plot_20_a
+plot_40_a
 
 stats_1 %>%
   summarise(mean = mean(freq_predict_wt))
@@ -123,11 +123,11 @@ stats_4 <- match_cons_class %>%
 
 joined_consensus <- rbind(stats_3, stats_4)
 
-plot_20_b <- joined_consensus %>%
+plot_40_b <- joined_consensus %>%
   ggplot(aes(y = freq_predict_cons, x = x_label, fill = group, color = group)) +
   geom_violin(alpha = 0.6, size = 0.7) + 
   stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
-  ggtitle(label = "20A Box: Predicting Consensus") +
+  ggtitle(label = "40A Box: Predicting Consensus") +
   theme_cowplot() + 
   theme(plot.title = element_text(hjust = 0, size = 12), 
         plot.subtitle = element_text(hjust = 0.5),
@@ -144,7 +144,7 @@ plot_20_b <- joined_consensus %>%
     name = "",
     labels = c("Amino Acid \n Prediction", "Class \n Prediction"))
   
-plot_20_b
+plot_40_b
 
 stats_3 %>%
   summarise(mean = mean(freq))
@@ -161,4 +161,4 @@ stats_4 %>%
 
 figure_1 <- plot_grid(a, b, nrow = 1, align="h", labels = c('A', 'B'))
 
-ggsave(filename = "../../analysis/figures/figure_1_new.png", plot = figure_1, width = 10, height = 4)
+ggsave(filename = "../../analysis/figures/figure_1_box_12.png", plot = figure_1, width = 10, height = 4)
