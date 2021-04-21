@@ -128,7 +128,7 @@ plot_12_b <- joined_consensus %>%
   geom_violin(alpha = 0.6, size = 0.7) + 
   stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
   ggtitle(label = "12A Box: Predicting Consensus") +
-  theme_cowplot() + 
+  theme_cowplot(12) + 
   theme(plot.title = element_text(hjust = 0, size = 12), 
         plot.subtitle = element_text(hjust = 0.5),
         panel.grid.major.y = element_line(color = "grey92", size=0.5),

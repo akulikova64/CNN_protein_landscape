@@ -409,9 +409,9 @@ plot_c <- ggplot() +
     name = "% Sequence Similarity of Alignment") +
   scale_y_continuous(
     name = "Correlation Coefficients",
-    limits = c(-0.4, 1.0),
+    limits = c(-0.5, 1.02),
     breaks = seq(from = -0.4, to = 1.0, by = 0.1),
-    expand = c(0, 0)) +
+    expand = c(0, 0.1)) +
   scale_color_gradient(
     aesthetics = c("color", "fill"), 
     high = "#ffd966", 

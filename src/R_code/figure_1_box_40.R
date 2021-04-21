@@ -128,7 +128,7 @@ plot_40_b <- joined_consensus %>%
   geom_violin(alpha = 0.6, size = 0.7) + 
   stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
   ggtitle(label = "40A Box: Predicting Consensus") +
-  theme_cowplot() + 
+  theme_cowplot(12) + 
   theme(plot.title = element_text(hjust = 0, size = 12), 
         plot.subtitle = element_text(hjust = 0.5),
         panel.grid.major.y = element_line(color = "grey92", size=0.5),
@@ -159,6 +159,6 @@ stats_4 %>%
 # making and saving the plots
 #==============================================================
 
-figure_1 <- plot_grid(a, b, nrow = 1, align="h", labels = c('A', 'B'))
+figure_1 <- plot_grid(plot_12_a, plot_12_b,plot_20_a, plot_20_b,plot_30_a, plot_30_b,plot_40_a, plot_40_b, nrow = 4, align="h", labels = c('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'))
 
-ggsave(filename = "../../analysis/figures/figure_1_box_12.png", plot = figure_1, width = 10, height = 4)
+ggsave(filename = "./analysis/figures/figure_1_boxes_all.png", plot = figure_1, width = 8, height = 10)
