@@ -5,15 +5,17 @@ library(tidyverse)
 library(cowplot)
 library(broom)
 
-# reading csv files
-natural_var <- read.csv(file="./stats_align_all.csv", header=TRUE, sep=",")
-natural_var_20 <- read.csv(file = "./stats_align_files/stats_align_20.csv", header=TRUE, sep=",")
-natural_var_40 <- read.csv(file = "./stats_align_files/stats_align_40.csv", header=TRUE, sep=",")
-natural_var_60 <- read.csv(file = "./stats_align_files/stats_align_60.csv", header=TRUE, sep=",")
-natural_var_80 <- read.csv(file = "./stats_align_files/stats_align_80.csv", header=TRUE, sep=",")
-natural_var_100 <- read.csv(file = "./stats_align_files/stats_align_100.csv", header=TRUE, sep=",")
+box_size = "40"
 
-cnn_data <- read.csv(file = "./cnn_wt_max_freq.csv", header=TRUE, sep=",")
+# reading csv files
+natural_var <- read.csv(file="./output/output_PSICOV/stats_align_all.csv", header=TRUE, sep=",")
+natural_var_20 <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_20.csv", header=TRUE, sep=",")
+natural_var_40 <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_40.csv", header=TRUE, sep=",")
+natural_var_60 <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_60.csv", header=TRUE, sep=",")
+natural_var_80 <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_80.csv", header=TRUE, sep=",")
+natural_var_100 <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_100.csv", header=TRUE, sep=",")
+
+cnn_data <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/cnn_wt_max_freq.csv"), header=TRUE, sep=",")
 
 cnn_data2 <- cnn_data %>%
   filter(group == "wt") %>%
@@ -185,7 +187,7 @@ plot_8a <- ggplot() +
     name = "Correlation Coefficients",
     #limits = c(-0.6, 0.4),
     #breaks = seq(from = -0.6, to = 0.4, by = 0.2),
-    expand = c(0.01, 0.01)) +
+    expand = c(0.02, 0.02)) +
   scale_color_gradient(
     aesthetics = c("color", "fill"), 
     high = "#ffd966", 
@@ -197,14 +199,12 @@ plot_8a <- ggplot() +
     panel.grid.minor = element_blank())
 
 plot_8a
-ggsave(filename = "../../analysis/figures/figure_8a.png", plot = plot_8a, width = 8, height = 4)
+ggsave(filename = paste0("./analysis/figures/figure_8a_box_",box_size,".png"), plot = plot_8a, width = 8, height = 4)
 
 
 #===============================================================================
 # a jitter plot per wt class
 #===============================================================================
-
-cnn_data <- read.csv(file = "./cnn_wt_max_freq.csv", header=TRUE, sep=",")
 
 wt_classes <- cnn_data %>%
   filter(group == "wt") %>%
@@ -321,7 +321,7 @@ plot_8c <- ggplot() +
     name = "Correlation Coefficients",
     limits = c(-0.4, 0.6),
     breaks = seq(from = -0.4, to = 0.6, by = 0.1),
-    expand = c(0, 0)) +
+    expand = c(0.05, 0.05)) +
   scale_color_gradient(
     aesthetics = c("color", "fill"), 
     high = "#ffd966", 
@@ -335,7 +335,7 @@ plot_8c <- ggplot() +
 
 plot_8c
 
-ggsave(filename = "../../analysis/figures/figure_8c.png", plot = plot_8c, width = 13.5, height = 6)
+ggsave(filename = paste0("./analysis/figures/figure_8c_box_",box_size,".png"), plot = plot_8c, width = 13.5, height = 6)
 
 
 
