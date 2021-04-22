@@ -92,11 +92,11 @@ plot_30_a
 
 stats_1 %>%
   summarise(mean = mean(freq_predict_wt))
-# mean for box_size 20 is = 0.592
+# mean for box_size 30 is = 0.606
 
 stats_2 %>%
   summarise(mean = mean(freq_predict_wt))
-# mean for box_size 20 = 0.710
+# mean for box_size 30 = 0.724
 
 #===================================================================================
 # b) check if predicted aa is the most frequent aa in the alignment (consensus)

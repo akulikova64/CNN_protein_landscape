@@ -2,7 +2,7 @@ from Bio import SeqIO
 import os
 import sys
 
-box_size = "20"
+box_size = "12"
 
 # this code aligns a protein sequence alignment reference to the wild type sequence in the CNN output
 

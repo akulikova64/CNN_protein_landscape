@@ -3,12 +3,14 @@ library(cowplot)
 
 # figure 3. 
 
+box_size <- "40"
+
 # heat maps. 
 
 # set working directory to: "Desktop/Natural_var_project/"
 # loading data
-cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
-natural_data <- read.csv(file = "./data/PSICOV_box_20/output/natural_max_freq_files/natural_max_freq_all.csv", header=TRUE, sep=",")
+cnn_data <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/cnn_wt_max_freq.csv"), header=TRUE, sep=",")
+natural_data <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/natural_max_freq_files/natural_max_freq_all.csv"), header=TRUE, sep=",")
 
 joined_data <- rbind(x = cnn_data, y = natural_data)
 
@@ -74,7 +76,7 @@ gray_zone = tibble(
   y = c("G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P"), 
   value = rep(1, times=20))
 
-plot_20_a1 <- ggplot() +
+plot_a1 <- ggplot() +
   geom_tile(data = for_heatplot_with_classes, aes(x = wt, y = predicted, alpha = freq, fill = class)) + 
   scale_alpha_continuous(
     guide = guide_legend(order = 2, reverse = TRUE),
@@ -98,7 +100,7 @@ plot_20_a1 <- ggplot() +
     plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")) 
 
 
-plot_20_a1
+plot_a1
 
 
 colors <-  c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e")
@@ -151,7 +153,7 @@ legend <- twoD_legend %>%
     
 legend
 
-ggsave(filename = "./analysis/figures/legend_fig_3.png", plot = legend, width = 2, height = 2)
+ggsave(filename = paste0("./analysis/figures/legend_fig_3.png"), plot = legend, width = 2, height = 2)
 
 # by classes:
 
@@ -183,7 +185,7 @@ gray_zone2 = tibble(
   y = c("aliphatic", "polar", "negative", "positive", "aromatic", "proline"), 
   value = rep(1, times=6))
 
-plot_20_a2 <- ggplot() +
+plot_a2 <- ggplot() +
   geom_tile(data = for_plot_a2, aes(x = wt, y = predicted, alpha = freq, fill = wt)) +
   #geom_tile(data = gray_zone2, aes(x,y), fill = "grey57") +
   scale_alpha_continuous(
@@ -211,11 +213,11 @@ plot_20_a2 <- ggplot() +
     legend.position = "none",
     plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
 
-plot_20_a2
+plot_a2
 
-figure_3a <- plot_grid(plot_20_a1, plot_20_a2, nrow = 1, align = "h", labels = c('A', 'B'))
+figure_3a <- plot_grid(plot_a1, plot_a2, nrow = 1, align = "h", labels = c('A', 'B'))
 
-ggsave(filename = "./analysis/figures/figure_3a.png", plot = figure_3a, width = 10, height = 4.5)
+ggsave(filename = paste0("./analysis/figures/figure_3a_box_",box_size,".png"), plot = figure_3a, width = 10, height = 4.5)
 
 
 #===========================================================================================
@@ -244,7 +246,7 @@ for_plot_b2 <- for_heat_sums2 %>%
   )
 
 
-plot_20_b2 <- for_plot_b2 %>%
+plot_b2 <- for_plot_b2 %>%
   ggplot(aes(x = natural_max, y = predicted, alpha = freq, fill = natural_max)) +
   geom_tile() +
   scale_alpha_continuous(
@@ -272,7 +274,7 @@ plot_20_b2 <- for_plot_b2 %>%
     legend.position = "none",
     plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
 
-plot_20_b2
+plot_b2
 
 
 # predicting consensus heat map:
@@ -304,7 +306,7 @@ for_heatplot_with_classes <- for_heatplot_final %>%
 
 
 
-plot_20_b1 <- for_heatplot_with_classes %>%
+plot_b1 <- for_heatplot_with_classes %>%
   ggplot(aes(
     x = fct_relevel(natural_max, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P"), 
     y = fct_rev(fct_relevel(predicted, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")), 
@@ -332,109 +334,109 @@ plot_20_b1 <- for_heatplot_with_classes %>%
     plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")) 
 
 
-plot_20_b1
+plot_b1
 
-figure_3b <- plot_grid(plot_20_b1, plot_20_b2, nrow = 1, align="h", labels = c('C', 'D'))
-ggsave(filename = "./analysis/figures/figure_3b.png", plot = figure_3b, width = 10, height = 4.5)
+figure_3b <- plot_grid(plot_b1, plot_b2, nrow = 1, align="h", labels = c('C', 'D'))
+ggsave(filename = paste0("./analysis/figures/figure_3b_box_",box_size,".png"), plot = figure_3b, width = 10, height = 4.5)
 
 
 figure_3_almost <- plot_grid(figure_3a, figure_3b, nrow = 2, align="h", labels = c('', ''))
 figure_3_almost
 figure_3 <- plot_grid(figure_3_almost, legend, nrow = 1, rel_widths = c(3, 1), scale = c(1, 0.7), labels = c('', ''))
 
-ggsave(filename = "./analysis/figures/figure_3_box_20.png", plot = figure_3, width = 10, height = 7)
+ggsave(filename = paste0("./analysis/figures/figure_3_box_",box_size,".png"), plot = figure_3, width = 10, height = 7)
 
 
 
 
 #Now I want to use the 80-100% homology group:
 
-cnn_data <- read.csv(file = "./cnn_wt_max_freq.csv", header=TRUE, sep=",")
-natural_data <- read.csv(file = "./natural_max_freq_files/natural_max_freq_20.csv", header=TRUE, sep=",")
-
-joined_data <- rbind(x = cnn_data, y = natural_data)
-
-for_heat_4 <- joined_data %>%
-  select(group, aa_class, position, gene) %>%
-  pivot_wider(names_from = group, values_from = aa_class) 
-
-for_heat_sums <- for_heat_4 %>%
-  group_by(natural_max, predicted) %>%
-  summarise(count = n())
-
-for_heat_sums2 <- for_heat_sums %>%
-  group_by(natural_max) %>%
-  mutate(freq = count/sum(count))
-
-for_heat_4 <- na.omit(for_heat_sums2)
-
-for_heatplot_final <- for_heat_4 %>%
-  mutate(
-    predicted = fct_rev(fct_relevel(predicted, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")),
-    natural_max = fct_relevel(natural_max, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")) %>%
-  mutate(natural_class = map_chr(natural_max, calc_class)) %>%
-  mutate(natural_class = fct_relevel(natural_class, "aliphatic", "polar", "negative", "positive", "aromatic"))
-
-
-plot_c <- for_heatplot_final %>%
-  ggplot(aes(
-    x = fct_relevel(natural_max, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P"), 
-    y = fct_rev(fct_relevel(predicted, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")), 
-    alpha = freq, 
-    fill = natural_class)) +
-  geom_tile() + 
-  scale_alpha_continuous(
-    guide = guide_legend(order = 2, reverse = TRUE),
-    range = c(0.2, 2)) +
-  scale_fill_manual(
-    values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),
-    guide = guide_legend(order = 1) ) +
-  scale_x_discrete(
-    name = "Consensus Residue",
-    expand = c(0,0)) +
-  scale_y_discrete(
-    name = "Predicted Residue",
-    expand = c(0,0)) +
-  labs(fill = "WT Class", alpha = "Frequency") +
-  theme_cowplot(12) +
-  theme(
-    panel.background = element_blank(),
-    axis.text = element_text(color = "black", size = 12))
-
-
-plot_c
-
-
-
-
-
-
-#==============================================================
-# making and saving the plot
-#==============================================================
-
-figure_3a <- plot_grid(plot_1a, plot_a2, nrow = 1, align="h", labels = c('A', 'B'))
-figure_3b <- plot_grid(plot_b, plot_b2, nrow = 1, align="h", labels = c('C', 'D'))
-
-ggsave(filename = "../../analysis/figures/figure_3a_new.png", plot = figure_3a, width = 14, height = 5.5)
-ggsave(filename = "../../analysis/figures/figure_3b_new.png", plot = figure_3b, width = 14, height = 5.5)
-
-
-figure_3 <- plot_grid(a, a2, b, b2, nrow = 2, align="hv", labels = c('A', 'B', 'C', 'D'))
-ggsave(filename = "figure_3.png", plot = figure_3, width = 14, height = 9)
-
-
-#tests ...
-
-table <- tibble(y = c(5, 3, 1, 3, 7), x = c(5, 3, 4, 3, 1))
-
-table2 <- table %>%
-  count(x, y) %>%
-  mutate(freq = n/sum(n))
-
-# it works 
-
-
-
-
-
+# cnn_data <- read.csv(file = "./cnn_wt_max_freq.csv", header=TRUE, sep=",")
+# natural_data <- read.csv(file = "./natural_max_freq_files/natural_max_freq_20.csv", header=TRUE, sep=",")
+# 
+# joined_data <- rbind(x = cnn_data, y = natural_data)
+# 
+# for_heat_4 <- joined_data %>%
+#   select(group, aa_class, position, gene) %>%
+#   pivot_wider(names_from = group, values_from = aa_class) 
+# 
+# for_heat_sums <- for_heat_4 %>%
+#   group_by(natural_max, predicted) %>%
+#   summarise(count = n())
+# 
+# for_heat_sums2 <- for_heat_sums %>%
+#   group_by(natural_max) %>%
+#   mutate(freq = count/sum(count))
+# 
+# for_heat_4 <- na.omit(for_heat_sums2)
+# 
+# for_heatplot_final <- for_heat_4 %>%
+#   mutate(
+#     predicted = fct_rev(fct_relevel(predicted, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")),
+#     natural_max = fct_relevel(natural_max, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")) %>%
+#   mutate(natural_class = map_chr(natural_max, calc_class)) %>%
+#   mutate(natural_class = fct_relevel(natural_class, "aliphatic", "polar", "negative", "positive", "aromatic"))
+# 
+# 
+# plot_c <- for_heatplot_final %>%
+#   ggplot(aes(
+#     x = fct_relevel(natural_max, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P"), 
+#     y = fct_rev(fct_relevel(predicted, "G","A","V","M","I","L","S","C","N","T","Q","D","E","H","K","R","F","Y","W","P")), 
+#     alpha = freq, 
+#     fill = natural_class)) +
+#   geom_tile() + 
+#   scale_alpha_continuous(
+#     guide = guide_legend(order = 2, reverse = TRUE),
+#     range = c(0.2, 2)) +
+#   scale_fill_manual(
+#     values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),
+#     guide = guide_legend(order = 1) ) +
+#   scale_x_discrete(
+#     name = "Consensus Residue",
+#     expand = c(0,0)) +
+#   scale_y_discrete(
+#     name = "Predicted Residue",
+#     expand = c(0,0)) +
+#   labs(fill = "WT Class", alpha = "Frequency") +
+#   theme_cowplot(12) +
+#   theme(
+#     panel.background = element_blank(),
+#     axis.text = element_text(color = "black", size = 12))
+# 
+# 
+# plot_c
+# 
+# 
+# 
+# 
+# 
+# 
+# #==============================================================
+# # making and saving the plot
+# #==============================================================
+# 
+# figure_3a <- plot_grid(plot_1a, plot_a2, nrow = 1, align="h", labels = c('A', 'B'))
+# figure_3b <- plot_grid(plot_b, plot_b2, nrow = 1, align="h", labels = c('C', 'D'))
+# 
+# ggsave(filename = "../../analysis/figures/figure_3a_new.png", plot = figure_3a, width = 14, height = 5.5)
+# ggsave(filename = "../../analysis/figures/figure_3b_new.png", plot = figure_3b, width = 14, height = 5.5)
+# 
+# 
+# figure_3 <- plot_grid(a, a2, b, b2, nrow = 2, align="hv", labels = c('A', 'B', 'C', 'D'))
+# ggsave(filename = "figure_3.png", plot = figure_3, width = 14, height = 9)
+# 
+# 
+# #tests ...
+# 
+# table <- tibble(y = c(5, 3, 1, 3, 7), x = c(5, 3, 4, 3, 1))
+# 
+# table2 <- table %>%
+#   count(x, y) %>%
+#   mutate(freq = n/sum(n))
+# 
+# # it works 
+# 
+# 
+# 
+# 
+# 

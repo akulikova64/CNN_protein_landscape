@@ -2,8 +2,9 @@
 # comparing neff predicted vs. neff natural across different alignments similarities. 
 library(tidyverse)
 library(cowplot)
-
 library(broom)
+
+box_size = "40"
 
 # useful function for getting mean and standard of deviation (for violin plots):
 data_summary <- function(x) {
@@ -14,17 +15,17 @@ data_summary <- function(x) {
 }
 
 #set working directory to:
-#C:\Users\avch\Desktop\Natural_var_project\output\output_PSICOV\
+#C:\Users\avch\Desktop\Natural_var_project
 
 # reading csv files
-natural_var <- read.csv(file="./stats_align_all.csv", header=TRUE, sep=",")
-natural_var_20 <- read.csv(file = "./stats_align_files/stats_align_20.csv", header=TRUE, sep=",")
-natural_var_40 <- read.csv(file = "./stats_align_files/stats_align_40.csv", header=TRUE, sep=",")
-natural_var_60 <- read.csv(file = "./stats_align_files/stats_align_60.csv", header=TRUE, sep=",")
-natural_var_80 <- read.csv(file = "./stats_align_files/stats_align_80.csv", header=TRUE, sep=",")
-natural_var_100 <- read.csv(file = "./stats_align_files/stats_align_100.csv", header=TRUE, sep=",")
+natural_var <- read.csv(file="./output/output_PSICOV/stats_align_all.csv", header=TRUE, sep=",")
+natural_var_20 <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_20.csv", header=TRUE, sep=",")
+natural_var_40 <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_40.csv", header=TRUE, sep=",")
+natural_var_60 <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_60.csv", header=TRUE, sep=",")
+natural_var_80 <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_80.csv", header=TRUE, sep=",")
+natural_var_100 <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_100.csv", header=TRUE, sep=",")
 
-cnn_var <- read.csv(file="./stats_cnn.csv", header=TRUE, sep=",")
+cnn_var <- read.csv(file= paste0("./data/PSICOV_box_",box_size,"/output/stats_cnn.csv"), header=TRUE, sep=",")
 cnn_var2 <- cnn_var %>%
   select(position, gene, n_eff, n_eff_class) %>%
   mutate(group = "predicted")
@@ -219,7 +220,7 @@ plot_a <- ggplot() +
     panel.grid.minor = element_blank())
 
 plot_a
-ggsave(filename = "./analysis/figures/figure_6a_box_40.png", plot = plot_a, width = 8, height = 4)
+ggsave(filename = paste0("./analysis/figures/figure_6a_box_",box_size,".png"), plot = plot_a, width = 8, height = 4)
 
 #===============================================================================================
 #plot_b (Now making a plot for neff natural CLASSES vs neff predicted CLASSES)
@@ -257,7 +258,7 @@ b <- cor_2 %>%
     expand = c(0, 0)) 
 
 # change the plot below to show neff pred vs neff natural for classes:
-b <- cor_2 %>%
+plot_b <- cor_2 %>%
   group_by(gene) %>%
   mutate(
     # pick y value corresponding to y3
@@ -280,12 +281,12 @@ b <- cor_2 %>%
   theme_bw() +
   theme(
     legend.position="none")
-b
+plot_b
 
 figure_1 <- plot_grid(a, b, nrow = 2, align="v", labels = c('A', 'B'))
 
 
-ggsave(filename = "../../analysis/figures/figure_6b.png", plot = b, width = 8, height = 5)
+ggsave(filename = paste0("./analysis/figures/figure_6b_box_",box_size,".png"), plot = plot_b, width = 8, height = 5)
 
 #==================================================================================================
 #================================================================================================================
@@ -293,7 +294,7 @@ ggsave(filename = "../../analysis/figures/figure_6b.png", plot = b, width = 8, h
 #================================================================================================================
 #=====================================================================================================
 
-cnn_data <- read.csv(file = "./cnn_wt_max_freq.csv", header=TRUE, sep=",")
+cnn_data <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/cnn_wt_max_freq.csv"), header=TRUE, sep=",")
   
 wt_classes <- cnn_data %>%
   filter(group == "wt") %>%
@@ -425,7 +426,7 @@ plot_c <- ggplot() +
 
 plot_c
 
-ggsave(filename = "./analysis/figures/figure_6c_box_40.png", plot = plot_c, width = 13.5, height = 6)
+ggsave(filename = paste0("./analysis/figures/figure_6c_box_",box_size,".png"), plot = plot_c, width = 13.5, height = 6)
 
 #==============================================================================================
 # SUPPLEMENTARY PLOT: boxplot of number of seqs per protein for each seq similarity group:
