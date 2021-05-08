@@ -35,17 +35,18 @@ custom_colors <- c("#9875bd", "#ecb613")
 
 for_heatplot_final <- for_heat_sums2 %>%
   mutate(
-    predicted = fct_rev(fct_relevel(predicted, "P","G","M","L","I","V","A","C","S","T","N","D","E","Q","R","K","H","Y","F","W")),
-    wt = fct_relevel(wt, "P","G","M","L","I","V","A","C","S","T","N","D","E","Q","R","K","H","Y","F","W")) 
+    predicted = fct_rev(fct_relevel(predicted, "P","G","M","L","I","V","A","C","S","T","N","Q","D","E","R","K","H","Y","F","W")),
+    wt = fct_relevel(wt, "P","G","M","L","I","V","A","C","S","T","N","Q","D","E","R","K","H","Y","F","W")) 
  
 #add aa class label: 
 calc_class <- function(x) {
   unique = c("P", "G")
   aliphatic = c("M", "L", "I", "V", "A")
-  small_polar = c("C", "S", "T")
-  large_polar = c("N", "D", "E", "Q")
-  positive = c("R", "K", "H")
-  aromatic = c("Y", "F", "W")
+  small_polar = c("C", "S", "T", "N", "Q")
+  negative = c("D", "E")
+  positive = c("R", "K")
+  aromatic = c("H", "Y", "F", "W")
+  
     
   if (x %in% unique) {
     return("unique")
@@ -56,8 +57,8 @@ calc_class <- function(x) {
   if (x %in% small_polar) {
     return("small polar")
   }
-  if (x %in% large_polar) {
-    return("large polar")
+  if (x %in% negative) {
+    return("negative")
   }
   if (x %in% positive) {
     return("positive")
@@ -70,11 +71,11 @@ calc_class <- function(x) {
 
 for_heatplot_with_classes <- for_heatplot_final %>%
   mutate(wt_class = map_chr(wt, calc_class)) %>%
-  mutate(class = fct_relevel(wt_class, "unique", "aliphatic", "small polar", "large polar", "positive", "aromatic"))
+  mutate(class = fct_relevel(wt_class, "unique", "aliphatic", "small polar", "negative", "positive", "aromatic"))
   
 gray_zone = tibble(
-  x = c("P","G","M","L","I","V","A","C","S","T","N","D","E","Q","R","K","H","Y","F","W"), 
-  y = c("P","G","M","L","I","V","A","C","S","T","N","D","E","Q","R","K","H","Y","F","W"), 
+  x = c("P","G","M","L","I","V","A","C","S","T","N","Q","D","E","R","K","H","Y","F","W"), 
+  y = c("P","G","M","L","I","V","A","C","S","T","N","Q","D","E","R","K","H","Y","F","W"), 
   value = rep(1, times=20))
 
 plot_a1 <- ggplot() +
@@ -106,12 +107,12 @@ plot_a1
 
 colors <-  c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e")
 alphas <- c(0.2, 0.4, 0.6, 0.8, 1.0)
-class_list <- c("unique", "aliphatic", "small polar", "large polar", "positive", "aromatic")
+class_list <- c("unique", "aliphatic", "small polar", "negative", "positive", "aromatic")
 
 twoD_legend <- tibble(class = c(rep("unique", times = 5), 
                                 rep("aliphatic", times = 5), 
                                 rep("small polar", times = 5), 
-                                rep("large polar", times = 5), 
+                                rep("negative", times = 5), 
                                 rep("positive", times = 5), 
                                 rep("aromatic", times = 5)), 
                       freq = c(rep(alphas, times = 6)))
@@ -128,7 +129,7 @@ legend <- twoD_legend %>%
   scale_x_discrete(
     name = "Amino Acid Class",
     position = "top",
-    labels = c("unique", "aliphatic", "small polar", "large polar", "positive", "aromatic"),
+    labels = c("unique", "aliphatic", "small polar", "negative", "positive", "aromatic"),
     expand = c(0,0)) +
   scale_y_discrete(
     name = "Frequency \n",
@@ -178,13 +179,13 @@ for_heat_sums2 <- na.omit(for_heat_sums2)
 
 for_plot_a2 <- for_heat_sums2 %>%
   mutate(
-    wt = fct_relevel(wt, "unique", "aliphatic", "small polar", "large polar", "positive", "aromatic"),
-    predicted = fct_rev(fct_relevel(predicted, "unique", "aliphatic", "small polar", "large polar", "positive", "aromatic"))
+    wt = fct_relevel(wt, "unique", "aliphatic", "small polar", "negative", "positive", "aromatic"),
+    predicted = fct_rev(fct_relevel(predicted, "unique", "aliphatic", "small polar", "negative", "positive", "aromatic"))
   )
 
 gray_zone2 = tibble(
-  x = c("unique", "aliphatic", "small polar", "large polar", "positive", "aromatic"), 
-  y = c("unique", "aliphatic", "small polar", "large polar", "positive", "aromatic"), 
+  x = c("unique", "aliphatic", "small polar", "negative", "positive", "aromatic"), 
+  y = c("unique", "aliphatic", "small polar", "negative", "positive", "aromatic"), 
   value = rep(1, times=6))
 
 plot_a2 <- ggplot() +
@@ -217,8 +218,8 @@ plot_a2 <- ggplot() +
 
 plot_a2
 
-figure_3a <- plot_grid(plot_a1, plot_a2, nrow = 1, align = "hv", labels = c('A', 'B'))
-
+figure_3a <- plot_grid(plot_a1, plot_a2, nrow = 1, axis = "bl", align = "hv", labels = c('a', 'b'))
+figure_3a
 ggsave(filename = paste0("./analysis/figures/figure_3a_box_",box_size,".png"), plot = figure_3a, width = 10, height = 4.5)
 
 
@@ -243,8 +244,8 @@ for_heat_sums2 <- na.omit(for_heat_sums2)
 
 for_plot_b2 <- for_heat_sums2 %>%
   mutate(
-    natural_max = fct_relevel(natural_max, "unique", "aliphatic", "small polar", "large polar", "positive", "aromatic"),
-    predicted = fct_rev(fct_relevel(predicted, "unique", "aliphatic", "small polar", "large polar", "positive", "aromatic"))
+    natural_max = fct_relevel(natural_max, "unique", "aliphatic", "small polar", "negative", "positive", "aromatic"),
+    predicted = fct_rev(fct_relevel(predicted, "unique", "aliphatic", "small polar", "negative", "positive", "aromatic"))
   )
 
 
@@ -299,19 +300,19 @@ for_heat_4 <- na.omit(for_heat_sums2)
 
 for_heatplot_final <- for_heat_4 %>%
   mutate(
-    predicted = fct_rev(fct_relevel(predicted, "P","G","M","L","I","V","A","C","S","T","N","D","E","Q","R","K","H","Y","F","W")),
-    wt = fct_relevel(natural_max, "P","G","M","L","I","V","A","C","S","T","N","D","E","Q","R","K","H","Y","F","W")) 
+    predicted = fct_rev(fct_relevel(predicted, "P","G","M","L","I","V","A","C","S","T","N","Q","D","E","R","K","H","Y","F","W")),
+    wt = fct_relevel(natural_max, "P","G","M","L","I","V","A","C","S","T","N","Q","D","E","R","K","H","Y","F","W")) 
 
 for_heatplot_with_classes <- for_heatplot_final %>%
   mutate(natural_max_class = map_chr(natural_max, calc_class)) %>%
-  mutate(class = fct_relevel(natural_max_class, "unique", "aliphatic", "small polar", "large polar", "positive", "aromatic"))
+  mutate(class = fct_relevel(natural_max_class, "unique", "aliphatic", "small polar", "negative", "positive", "aromatic"))
 
 
 
 plot_b1 <- for_heatplot_with_classes %>%
   ggplot(aes(
-    x = fct_relevel(natural_max, "P","G","M","L","I","V","A","C","S","T","N","D","E","Q","R","K","H","Y","F","W"), 
-    y = fct_rev(fct_relevel(predicted, "P","G","M","L","I","V","A","C","S","T","N","D","E","Q","R","K","H","Y","F","W")), 
+    x = fct_relevel(natural_max, "P","G","M","L","I","V","A","C","S","T","N","Q","D","E","R","K","H","Y","F","W"), 
+    y = fct_rev(fct_relevel(predicted, "P","G","M","L","I","V","A","C","S","T","N","Q","D","E","R","K","H","Y","F","W")), 
                 alpha = freq, 
                 fill = class)) +
   geom_tile() + 
@@ -338,7 +339,7 @@ plot_b1 <- for_heatplot_with_classes %>%
 
 plot_b1
 
-figure_3b <- plot_grid(plot_b1, plot_b2, nrow = 1, align="hv", labels = c('C', 'D'))
+figure_3b <- plot_grid(plot_b1, plot_b2, nrow = 1, axis = "bl", align="hv", labels = c('c', 'd'))
 ggsave(filename = paste0("./analysis/figures/figure_3b_box_",box_size,".png"), plot = figure_3b, width = 10, height = 4.5)
 
 

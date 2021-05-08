@@ -15,7 +15,7 @@ def getMax(list):
   return [aaList[ind], max]
 
 def getMax_class(list):
-  class_list = ['unique', 'aliphatic', 'small_polar', 'large_polar', 'positive', 'aromatic']
+  class_list = ['unique', 'aliphatic', 'small_polar', 'negative', 'positive', 'aromatic']
   ind = 0
   max = 0
   for i in range(0, len(list)):
@@ -26,14 +26,14 @@ def getMax_class(list):
   return [class_list[ind], max]
 
 def get_aa_class(wt_aa, class_freqs):
-  class_list = ['unique', 'aliphatic', 'small polar', 'large polar', 'positive', 'aromatic']
+  class_list = ['unique', 'aliphatic', 'small polar', 'negative', 'positive', 'aromatic']
 
   unique = ["P", "G"]
   aliphatic = ["M", "L", "I", "V", "A"]
-  small_polar = ["C", "S", "T"]
-  large_polar = ["N", "D", "E", "Q"]
-  positive = ["R", "K", "H"]
-  aromatic = ["Y", "F", "W"]
+  small_polar = ["C", "S", "T", "N", "Q"]
+  negative = ["D", "E"]
+  positive = ["R", "K"]
+  aromatic = ["H", "Y", "F", "W"]
 
   # get aa_class of the wt (from "wt_aa" parameter)  
   if wt_aa in unique:
@@ -42,8 +42,8 @@ def get_aa_class(wt_aa, class_freqs):
     aa_class = "aliphatic" 
   if wt_aa in small_polar:
     aa_class = "small polar"
-  if wt_aa in large_polar:
-    aa_class = "large polar"
+  if wt_aa in negative:
+    aa_class = "negative"
   if wt_aa in positive:
     aa_class = "positive"
   if wt_aa in aromatic:

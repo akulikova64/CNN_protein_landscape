@@ -25,12 +25,12 @@ def get_class_freq(freq):
   
   unique = ["P", "G"]
   aliphatic = ["M", "L", "I", "V", "A"]
-  small_polar = ["C", "S", "T"]
-  large_polar = ["N", "D", "E", "Q"]
-  positive = ["R", "K", "H"]
-  aromatic = ["Y", "F", "W"]
+  small_polar = ["C", "S", "T", "N", "Q"]
+  negative = ["D", "E"]
+  positive = ["R", "K"]
+  aromatic = ["H", "Y", "F", "W"]
 
-  class_dict = {"unique":0, "aliphatic":0, "small polar":0, "large polar":0, "positive":0, "aromatic":0}
+  class_dict = {"unique":0, "aliphatic":0, "small polar":0, "negative":0, "positive":0, "aromatic":0}
   for aa in freq:
     if aa in unique:
       class_dict["unique"] += freq[aa]
@@ -38,8 +38,8 @@ def get_class_freq(freq):
       class_dict["aliphatic"] += freq[aa] 
     if aa in small_polar:
       class_dict["small polar"] += freq[aa]
-    if aa in large_polar:
-      class_dict["large polar"] += freq[aa]
+    if aa in negative:
+      class_dict["negative"] += freq[aa]
     if aa in positive:
       class_dict["positive"] += freq[aa]
     if aa == aromatic:

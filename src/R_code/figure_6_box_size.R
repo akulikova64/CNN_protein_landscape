@@ -1,0 +1,224 @@
+# comparing neff predicted vs. neff natural across different box sizes for similarity group (60-80%)
+library(tidyverse)
+library(cowplot)
+library(broom)
+
+# useful function for getting mean and standard of deviation (for violin plots):
+data_summary <- function(x) {
+  m <- mean(x)
+  ymin <- m-sd(x)
+  ymax <- m+sd(x)
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
+
+#set working directory to:
+#C:\Users\avch\Desktop\Natural_var_project
+
+# reading csv files
+#only using the 40-60% similarity group
+natural_var <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_60.csv", header=TRUE, sep=",")
+
+cnn_var_12 <- read.csv(file= paste0("./data/PSICOV_box_12/output/stats_cnn.csv"), header=TRUE, sep=",")
+cnn_var_20 <- read.csv(file= paste0("./data/PSICOV_box_20/output/stats_cnn.csv"), header=TRUE, sep=",")
+cnn_var_30 <- read.csv(file= paste0("./data/PSICOV_box_30/output/stats_cnn.csv"), header=TRUE, sep=",")
+cnn_var_40 <- read.csv(file= paste0("./data/PSICOV_box_40/output/stats_cnn.csv"), header=TRUE, sep=",")
+
+
+natural_var <- natural_var %>%
+  select(position, gene, n_eff, n_eff_class) %>%
+  mutate(group = "natural")
+
+#box_size 12
+cnn_var_12 <- cnn_var_12 %>%
+  select(position, gene, n_eff, n_eff_class) %>%
+  mutate(group = "predicted")
+
+joined_12 <- rbind(natural_var, cnn_var_12) %>%
+  mutate(box_size = "12") 
+
+#box_size 20
+cnn_var_20 <- cnn_var_20 %>%
+  select(position, gene, n_eff, n_eff_class) %>%
+  mutate(group = "predicted")
+
+joined_20 <- rbind(natural_var, cnn_var_20) %>%
+  mutate(box_size = "20") 
+
+#box_size 30
+cnn_var_30 <- cnn_var_30 %>%
+  select(position, gene, n_eff, n_eff_class) %>%
+  mutate(group = "predicted")
+
+joined_30 <- rbind(natural_var, cnn_var_30) %>%
+  mutate(box_size = "30") 
+
+#box_size 40
+cnn_var_40 <- cnn_var_40 %>%
+  select(position, gene, n_eff, n_eff_class) %>%
+  mutate(group = "predicted")
+
+joined_40 <- rbind(natural_var, cnn_var_40) %>%
+  mutate(box_size = "40") 
+
+#joining all the box_sizes
+all_joined <- rbind(joined_12, joined_20, joined_30, joined_40)
+
+all_joined_wide <- all_joined %>%
+  select(-n_eff_class) %>%
+  pivot_wider(names_from = group, values_from = n_eff)
+
+# fitting a linear model to data (getting R^2 and p-values)
+lm_summary <- all_joined_wide %>%
+  na.omit() %>%
+  nest(data = -c(gene, box_size)) %>%
+  mutate(
+    fit = map(data, ~lm(natural ~ predicted, data = .x)),
+    glance_out = map(fit, glance)
+  ) %>%
+  select(gene, box_size, glance_out) %>%
+  unnest(cols = glance_out)
+lm_summary
+
+# getting rid of the genes that are not present in all 4 groups:
+lm_summary <- lm_summary %>%
+  select(gene, box_size, r.squared, p.value) 
+
+# making two dataframes for correlation coefficients and p-values:
+cor_coeffs <- lm_summary %>%
+  select(gene, box_size, r.squared)
+
+p_values <- lm_summary %>%
+  select(gene, box_size, p.value)
+
+# removing genes that are not found across all 5 similarity groups:
+cor_coeffs_wide <- cor_coeffs %>%
+  pivot_wider(names_from = box_size, values_from = r.squared)
+
+p_values_wide <- p_values %>%
+  pivot_wider(names_from = box_size, values_from = p.value)
+
+cor_coeffs_reduced <- na.omit(cor_coeffs_wide)
+p_values_reduced <- na.omit(p_values_wide)
+
+# making both dataframes longer again for plotting:
+cor_coeffs <- cor_coeffs_reduced %>%
+  pivot_longer(
+    cols = -gene, 
+    names_to = "box_size", 
+    values_to = c("r_squared"))
+
+p_values <- p_values_reduced %>%
+  pivot_longer(
+    cols = -gene, 
+    names_to = "box_size", 
+    values_to = c("p_value"))
+
+# labeling the significant p-values:
+p_values <- p_values %>%
+  mutate(signif = ifelse(p_value <= 0.05, TRUE, FALSE))
+
+#FINDING CORRELATION COEFFS:
+# an alternative method for finding the correlations:
+cor <- all_joined_wide %>%
+  na.omit() %>%
+  group_by(gene, box_size) %>%
+  summarise(cor = cor(natural, predicted)) 
+
+
+# filtering for the correlations that are significant:
+joined_cors_2 <- inner_join(p_values, cor)
+
+#comparing all_data_1 (from figure_6.R) and all_data_2 from this script
+
+reduced <- right_join(joined_cors_1, joined_cors_2)
+reduced <- na.omit(reduced) 
+reduced <- reduced %>%
+  select(gene) %>%
+  distinct() %>%
+  mutate(flag = TRUE)
+
+
+for_all <- left_join(cor, reduced, by = "gene")
+for_all <- na.omit(for_all) 
+for_all <- for_all %>%
+  select(-flag)
+
+joined_final <- left_join(joined_cors_2, reduced, by = "gene")
+joined_final <- na.omit(joined_final) 
+joined_final <- joined_final %>%
+  select(-flag)
+
+# filtering for the correlations that are significant:
+sig_cor <- joined_final %>%
+  filter(signif == TRUE) %>%
+  select(cor, box_size, gene)
+
+# filtering for the correlations that are **NOT** significant:
+not_signif <- joined_final %>%
+  filter(signif == FALSE) %>%
+  select(cor, box_size, gene)
+
+#===========================================================================================
+# plot_a (correlations bw neff predicted and neff natural across seq similarity groups)
+#=============================================================================================
+sig_cor <- sig_cor %>%
+  group_by(gene) %>%
+  mutate(
+    # pick y value corresponding to y3
+    color_y = sum(cor * (box_size == "12"))
+  ) 
+
+all_data <- for_all %>%
+  group_by(gene) %>%
+  mutate(
+    # pick y value corresponding to y3
+    color_y = sum(cor * (box_size == "12"))
+  ) 
+
+
+plot_a <- ggplot() +
+  geom_path(
+    data = all_data,
+    aes(x = box_size, y = cor, group = gene, color = color_y),
+    size = 0.25, 
+    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
+  geom_point(
+    data = not_signif,
+    aes(x = box_size, y = cor, group = gene),
+    shape = 21, 
+    color = "black",
+    fill = "white",
+    size = 2, 
+    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
+  geom_point(
+    data = sig_cor,
+    aes(x = box_size, y = cor, group = gene, fill = color_y),
+    shape = 21, 
+    color = "black",
+    size = 2, 
+    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
+  scale_x_discrete(
+    name = "Box Size (Å)") +
+  scale_y_continuous(
+    name = "Correlation Coefficients",
+    limits = c(-0.4, 0.7),
+    breaks = seq(from = -0.4, to = 0.6, by = 0.1),
+    expand = c(0, 0)) +
+  scale_color_gradient(
+    aesthetics = c("color", "fill"), 
+    high = "#ffd966", 
+    low = "#080845") +
+  theme_bw(12) +
+  theme(
+    legend.position = "none",
+    axis.text = element_text(color = "black", size = 12),
+    panel.grid.minor = element_blank())
+
+plot_a
+
+ggsave(filename = paste0("./analysis/figures/figure_6_box_size.png"), plot = plot_a, width = 8, height = 4)
+
+
+
+
+
