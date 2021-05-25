@@ -2,9 +2,9 @@ library(tidyverse)
 library(cowplot)
 library(ggforce)
 
-box_size = "40"
-pred_wt_aa = 0.598
-pred_wt_class = 0.715
+box_size = "20"
+pred_wt_aa = 0.592
+pred_wt_class = 0.713
 
 # loading data
 cnn_data <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/cnn_wt_max_freq.csv"), header=TRUE, sep=",")
@@ -95,20 +95,21 @@ data_summary <- function(x) {
 # plot 5
 figure_5a <- stats_for_plot2 %>%
   filter(condition == "freq_predict_cons") %>%
-  ggplot(aes(y = freq, x = perc_sim)) +
+  ggplot(aes(y = freq, x = fct_rev(perc_sim))) +
   geom_violin(fill = "#8c7b9d", color = "#655775", alpha = 0.5) + 
   geom_hline(yintercept = pred_wt_aa, linetype = "dashed", color = "#8a0f0f", alpha = 0.8, size = 0.85) +
   #geom_sina(size = 0.2) +
   stat_summary(fun.data=data_summary) +
-  theme_cowplot() + 
+  theme_cowplot(16) + 
   theme(plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5),
+        axis.text = element_text(color = "black", size = 16),
         panel.grid.major.y = element_line(color = "grey92", size=0.5)
         ) +
   #labs(title = "CNN Predictions Compared to Alignment Consensus", 
        #subtitle = "Amino Acid Predictions") +
   scale_x_discrete(
-    name = "Percent Sequence Similarity of Alignment"
+    name = "Percent sequence similarity to wild type"
   ) +
   scale_y_continuous(
     name = "Accuracy",
@@ -137,19 +138,20 @@ stats_for_class_plot2 <- stats_for_class_plot %>%
 # plot 5b
 figure_5b <- stats_for_class_plot2 %>%
   filter(condition == "freq_predict_cons") %>%
-  ggplot(aes(y = freq, x = perc_sim)) +
+  ggplot(aes(y = freq, x = fct_rev(perc_sim))) +
   geom_violin(fill = "#d2a92d", color = "#8a7228", alpha = 0.5) + 
   geom_hline(yintercept = pred_wt_class, linetype = "dashed", color = "#8a0f0f", alpha = 0.8, size = 0.85) +
   #geom_sina(size = 0.2) +
   stat_summary(fun.data=data_summary) +
-  theme_cowplot() + 
+  theme_cowplot(16) + 
   theme(plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5),
+        axis.text = element_text(color = "black", size = 16),
         panel.grid.major.y = element_line(color = "grey92", size=0.5)) +
   #labs(title = "CNN Predictions Compared to Alignment Consensus", 
        #subtitle = "Within Class Predictions") +
   scale_x_discrete(
-    name = "Percent Sequence Similarity of Alignment") +
+    name = "Percent sequence similarity to wild type") +
   scale_y_continuous(
     name = "Accuracy",
     limits = c(0, 1.0),
@@ -160,7 +162,7 @@ figure_5b
 
 ggsave(filename = paste0("./analysis/figures/figure_5b_",box_size,".png"), plot = figure_5b, width = 8, height = 4)
 
-figure_5 <- plot_grid(figure_5a, figure_5b, nrow = 2, align="h", labels = c('A', 'B'))
+figure_5 <- plot_grid(figure_5a, figure_5b, nrow = 2, align="h", labels = c('a', 'b'))
 ggsave(filename = paste0("./analysis/figures/figure_5_",box_size,".png"), plot = figure_5, width = 8, height = 8)
 
 # #testing...

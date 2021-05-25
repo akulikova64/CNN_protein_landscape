@@ -128,7 +128,7 @@ cor <- all_joined_wide %>%
 # filtering for the correlations that are significant:
 joined_cors_2 <- inner_join(p_values, cor)
 
-#comparing all_data_1 (from figure_6.R) and all_data_2 from this script
+#comparing all_data_1 (from figure_6.R) and all_data_2 from this script (rerun figure_6.R to get the first joined_cors_1)
 
 reduced <- right_join(joined_cors_1, joined_cors_2)
 reduced <- na.omit(reduced) 
@@ -136,7 +136,6 @@ reduced <- reduced %>%
   select(gene) %>%
   distinct() %>%
   mutate(flag = TRUE)
-
 
 for_all <- left_join(cor, reduced, by = "gene")
 for_all <- na.omit(for_all) 
@@ -148,57 +147,71 @@ joined_final <- na.omit(joined_final)
 joined_final <- joined_final %>%
   select(-flag)
 
+joined_final <- joined_final%>%
+  group_by(gene) %>%
+  mutate(
+    # pick y value corresponding to y3
+    color_y = sum(cor * (box_size == "12")),
+    dx = rnorm(n(), mean = 0, sd = .05),
+    dy = rnorm(n(), mean = 0, sd = .05),
+    x_value = as.numeric(factor(box_size)))
+
 # filtering for the correlations that are significant:
 sig_cor <- joined_final %>%
   filter(signif == TRUE) %>%
-  select(cor, box_size, gene)
+  select(cor, box_size, gene, dx, dy, x_value, color_y)
 
 # filtering for the correlations that are **NOT** significant:
 not_signif <- joined_final %>%
   filter(signif == FALSE) %>%
-  select(cor, box_size, gene)
+  select(cor, box_size, gene, dx, dy, x_value, color_y)
 
 #===========================================================================================
 # plot_a (correlations bw neff predicted and neff natural across seq similarity groups)
 #=============================================================================================
-sig_cor <- sig_cor %>%
-  group_by(gene) %>%
-  mutate(
-    # pick y value corresponding to y3
-    color_y = sum(cor * (box_size == "12"))
-  ) 
-
-all_data <- for_all %>%
-  group_by(gene) %>%
-  mutate(
-    # pick y value corresponding to y3
-    color_y = sum(cor * (box_size == "12"))
-  ) 
+# sig_cor <- sig_cor %>%
+#   group_by(gene) %>%
+#   mutate(
+#     # pick y value corresponding to y3
+#     color_y = sum(cor * (box_size == "12"))
+#   ) 
+# 
+# all_data <- for_all %>%
+#   group_by(gene) %>%
+#   mutate(
+#     # pick y value corresponding to y3
+#     color_y = sum(cor * (box_size == "12"))
+#   ) 
 
 
 plot_a <- ggplot() +
   geom_path(
-    data = all_data,
-    aes(x = box_size, y = cor, group = gene, color = color_y),
-    size = 0.25, 
-    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
+    data = not_signif,
+    aes(x = as.numeric(factor(box_size))+dx, y = cor+dy, group = gene, color = color_y),
+    size = 0.25) +
+  geom_path(
+    data = sig_cor,
+    aes(x = as.numeric(factor(box_size))+dx, y = cor+dy, group = gene, color = color_y),
+    size = 0.25) +
   geom_point(
     data = not_signif,
-    aes(x = box_size, y = cor, group = gene),
+    aes(x = as.numeric(factor(box_size))+dx, y = cor+dy, group = gene),
     shape = 21, 
     color = "black",
     fill = "white",
-    size = 2, 
-    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
+    size = 2) +
   geom_point(
     data = sig_cor,
-    aes(x = box_size, y = cor, group = gene, fill = color_y),
+    aes(x = as.numeric(factor(box_size))+dx, y = cor+dy, group = gene, fill = color_y),
     shape = 21, 
     color = "black",
-    size = 2, 
-    position = position_jitter(width = 0.07, height = 0, seed = 123)) +
-  scale_x_discrete(
-    name = "Box Size (Å)") +
+    size = 2) +
+  scale_x_continuous(
+    name = "Box Size (Å)",
+    limits = c(0.5, 4.5),
+    labels = c("12", "20", "30", "40"),
+    breaks = (seq(from = 1, to = 4, by = 1)),
+    expand = c(0, 0)) +
   scale_y_continuous(
     name = "Correlation Coefficients",
     limits = c(-0.4, 0.7),
@@ -208,10 +221,10 @@ plot_a <- ggplot() +
     aesthetics = c("color", "fill"), 
     high = "#ffd966", 
     low = "#080845") +
-  theme_bw(12) +
+  theme_bw(16) +
   theme(
     legend.position = "none",
-    axis.text = element_text(color = "black", size = 12),
+    axis.text = element_text(color = "black", size = 16),
     panel.grid.minor = element_blank())
 
 plot_a

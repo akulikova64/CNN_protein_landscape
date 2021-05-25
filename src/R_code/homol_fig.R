@@ -3,13 +3,13 @@ library(cowplot)
 library(ggforce)
 #getting the average % homology for all proteins in the alignment.
 
-homol_data <- read.csv(file = "./percent_homol.csv", header=TRUE, sep=",")
+homol_data <- read.csv(file = "./output/output_PSICOV/percent_homol.csv", header=TRUE, sep=",")
 
 plot_a <- homol_data %>%
   ggplot(aes(x = percent_homol)) +
   geom_density(fill = "seashell3", color = "seashell4") +
   scale_x_continuous(
-    name = "% Homology per Protein Alignment",
+    name = "% Sequence Similarity of Alignment",
     limits = c(0.0, 1.01),
     breaks = seq(from = 0.0, to = 1.0, by = 0.1),
     expand = c(0, 0)) +
@@ -21,12 +21,12 @@ plot_a <- homol_data %>%
   theme_cowplot()
 plot_a
 
-ggsave(filename = "../../analysis/figures/figure_hom.png", plot = plot_a, width = 8, height = 5)
+ggsave(filename = "./analysis/figures/figure_hom.png", plot = plot_a, width = 8, height = 5)
 
 
 # now getting the average class percents per column in every alignment. 
 
-class_fractions <- read.csv(file = "./stats_align_all.csv", header=TRUE, sep=",")
+class_fractions <- read.csv(file = "./output/output_PSICOV/stats_align_all.csv", header=TRUE, sep=",")
 
 class_fractions <- class_fractions %>%
   select(position, gene, c(q_aliphatic:q_proline)) %>%

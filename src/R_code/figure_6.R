@@ -151,11 +151,8 @@ cor_reduced <- cor_reduced %>%
   pivot_longer(cols =  c("(0-20%]", "(20-40%]", "(40-60%]", "(60-80%]", "(80-100%]"), names_to = "perc_sim", values_to = "cor")
 
 # filtering for the correlations that are significant:
+# you need this for the figure_6_box_size.R script
 joined_cors_1 <- inner_join(p_values, cor_reduced)
-
-sig_cor <- joined_cors_1 %>%
-  filter(signif == TRUE) %>%
-  select(cor, perc_sim, gene)
 
 get_x_value <- function(perc_sim){
   if (perc_sim == "(0-20%]") {
@@ -172,6 +169,21 @@ get_x_value <- function(perc_sim){
   return(x_value)
 }
 
+joined_cors_1 <- joined_cors_1 %>%
+  group_by(gene) %>%
+  mutate(
+    # pick y value corresponding to y3
+    color_y = sum(cor * (perc_sim == "(40-60%]")),
+    dx = rnorm(n(), mean = 0, sd = .05),
+    dy = rnorm(n(), mean = 0, sd = .05),
+    x_value = as.numeric(factor(perc_sim)))  
+
+sig_cor <- joined_cors_1 %>%
+  filter(signif == TRUE) %>%
+  select(cor, perc_sim, gene, dx, dy, color_y)
+
+
+
 get_dx_dy <- function(perc_sim){
   return(rnorm(n(), mean = map(perc_sim, get_x_value), sd = 0.1))
 }
@@ -179,10 +191,7 @@ get_dx_dy <- function(perc_sim){
 # filtering for the correlations that are **NOT** significant:
 not_signif <- joined_cors_1 %>%
   filter(signif == FALSE) %>%
-  select(cor, perc_sim, gene) %>%
-  mutate(x_value = as.numeric(factor(perc_sim))) %>%
-  mutate(dx = rnorm(n(), mean = 0, sd = .1),
-         dy = rnorm(n(), mean = 0, sd = .1))
+  select(cor, perc_sim, gene, dx, dy, color_y)
   
 not_signif
   
@@ -190,26 +199,19 @@ not_signif
 
 #===========================================================================================
 # plot_a (correlations bw neff predicted and neff natural across seq similarity groups)
-#=============================================================================================
-sig_cor <- sig_cor %>%
-  group_by(gene) %>%
-  mutate(
-    # pick y value corresponding to y3
-    color_y = sum(cor * (perc_sim == "(80-100%]")),
-    dx = rnorm(n(), mean = 0, sd = .1),
-    dy = rnorm(n(), mean = 0, sd = .1),
-    x_value = as.numeric(factor(perc_sim))) 
+#===========================================================================================
 
-all_data <- cor_reduced %>%
-  group_by(gene) %>%
-  mutate(
-    # pick y value corresponding to y3
-    color_y = sum(cor * (perc_sim == "(80-100%]")),
-    dx = rnorm(n(), mean = 0, sd = .1),
-    dy = rnorm(n(), mean = 0, sd = .1),
-    x_value = as.numeric(factor(perc_sim))) 
- 
-all_data
+# just in case (not used below)
+# all_data <- cor_reduced %>%
+#   group_by(gene) %>%
+#   mutate(
+#     # pick y value corresponding to y3
+#     color_y = sum(cor * (perc_sim == "(80-100%]")),
+#     dx = rnorm(n(), mean = 0, sd = .1),
+#     dy = rnorm(n(), mean = 0, sd = .1),
+#     x_value = as.numeric(factor(perc_sim))) 
+#  
+# all_data
 
 plot_a <- ggplot() +
   geom_path(
@@ -235,8 +237,9 @@ plot_a <- ggplot() +
     size = 2) +
   scale_x_continuous(
     name = "% Sequence Similarity of Alignment",
-    limits = c(0,6),
-    breaks = (seq(from = 0, to = 5, by = 1))) +
+    limits = c(0.5,5.5),
+    labels = c("(0-20%]", "(20-40%]", "(40-60%]", "(60-80%]", "(80-100%]"),
+    breaks = (seq(from = 1, to = 5, by = 1))) +
   scale_y_continuous(
     name = "Correlation Coefficients",
     limits = c(-0.4, 0.7),
@@ -246,23 +249,14 @@ plot_a <- ggplot() +
     aesthetics = c("color", "fill"), 
     high = "#ffd966", 
     low = "#080845") +
-  theme_bw(12) +
+  theme_bw(16) +
   theme(
     legend.position = "none",
-    axis.text = element_text(color = "black", size = 12),
+    axis.text = element_text(color = "black", size = 16),
     panel.grid.minor = element_blank())
 
 plot_a
 
-
-iris %>%
-  mutate(
-    dx = rnorm(n(), mean = 1, sd = .1),
-    dy = rnorm(n(), mean = 1, sd = .1)
-  ) %>%
-  ggplot(aes(Sepal.Length*dx, Sepal.Width*dy, color = Species)) +
-  geom_point() +
-  geom_path()
 
 ggsave(filename = paste0("./analysis/figures/figure_6a_box_",box_size,".png"), plot = plot_a, width = 8, height = 4)
 

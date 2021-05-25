@@ -71,8 +71,8 @@ plot_20_a <- joined_single_and_class %>%
   geom_violin(alpha = 0.6, size = 0.7) +
   stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
   #ggtitle(label = "20A Box: Predicting Wild Type") +
-  theme_cowplot(12) + 
-  theme(plot.title = element_text(hjust = 0, size=12), 
+  theme_cowplot(16) + 
+  theme(plot.title = element_text(hjust = 0, size=16), 
         plot.subtitle = element_text(hjust = 0.5),
         panel.grid.major.y = element_line(color = "grey92", size=0.5),
         legend.position = "none") +
@@ -128,8 +128,8 @@ plot_20_b <- joined_consensus %>%
   geom_violin(alpha = 0.6, size = 0.7) + 
   stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
   #ggtitle(label = "20A Box: Predicting Consensus") +
-  theme_cowplot(12) + 
-  theme(plot.title = element_text(hjust = 0, size = 12), 
+  theme_cowplot(16) + 
+  theme(plot.title = element_text(hjust = 0, size = 16), 
         plot.subtitle = element_text(hjust = 0.5),
         panel.grid.major.y = element_line(color = "grey92", size=0.5),
         legend.position = "none") +
@@ -178,10 +178,11 @@ bar_2 <- match_cons_class %>%
   mutate(x_label = "class \n predictions")
 
 
-joined_bars <- rbind(bar_1, bar_2)
+joined_bars <- rbind(bar_1, bar_2) %>%
+  mutate(freq = 100*(1-freq_cons_not_wt)) 
 
 plot_20_c <- joined_bars %>% 
-  ggplot(aes(x = group, y = freq_cons_not_wt, fill = group, color = group)) +
+  ggplot(aes(x = group, y = freq, fill = group, color = group)) +
   geom_col(alpha = 0.6) +
   scale_fill_manual(values = c("#8c7b9d", "#d2a92d")) +
   scale_color_manual(values = c("#655775", "#8a7228")) +
@@ -189,11 +190,12 @@ plot_20_c <- joined_bars %>%
     name = "",
     labels = c("aa", "Class"))+
   scale_y_continuous(
-    name = "Frequency",
-    limits = c(0.0, 0.14),
-    breaks = seq(0.0, 0.14, by = 0.02),
+    name = "Frequency at which \n Predicted Consensus is Wild Type",
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    labels = paste0(seq(0, 100, by = 10), "%"),
     expand = c(0,0)) +
-  theme_cowplot(12) + 
+  theme_cowplot(16) + 
   theme(
     panel.grid.major.y = element_line(color = "grey92", size=0.5),
     legend.position = "none")
