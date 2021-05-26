@@ -3,6 +3,7 @@ import os
 import sys
 
 # This code samples the sequences PSICOV alignments by % similarity to the sequences in the PSICOV pdb structures.
+#in other words, this program sorts alignments by similarity to the reference/wild type sequence.
 
 #Plan:
 #load the seqs from the CNN output (wt aa) into a dictionary with the protein name. 

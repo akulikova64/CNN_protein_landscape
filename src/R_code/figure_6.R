@@ -3,6 +3,7 @@
 library(tidyverse)
 library(cowplot)
 library(broom)
+library(stats)
 
 box_size = "20"
 
@@ -104,13 +105,25 @@ cor_coeffs <- lm_summary %>%
 
 p_values <- lm_summary %>%
   select(gene, perc_sim, p.value)
+p_values
+
+# false discovery correction is applied to the p-values:
+new_p_values <- p_values %>%
+  nest(data = -c(perc_sim)) %>%
+  mutate(
+    new_p = map(data, ~p.adjust(.x$p.value, method = "fdr", n = length(.x$p.value)))
+  ) %>%
+  unnest(cols = c(data, new_p))
+
+
 
 # removing genes that are not found across all 5 similarity groups:
 cor_coeffs_wide <- cor_coeffs %>%
   pivot_wider(names_from = perc_sim, values_from = r.squared)
 
-p_values_wide <- p_values %>%
-  pivot_wider(names_from = perc_sim, values_from = p.value)
+p_values_wide <- new_p_values %>%
+  select(perc_sim, gene, new_p) %>%
+  pivot_wider(names_from = perc_sim, values_from = new_p)
 
 cor_coeffs_reduced <- na.omit(cor_coeffs_wide)
 p_values_reduced <- na.omit(p_values_wide)
@@ -236,14 +249,14 @@ plot_a <- ggplot() +
     color = "black",
     size = 2) +
   scale_x_continuous(
-    name = "% Sequence Similarity of Alignment",
+    name = "Percent sequence similarity to wild type",
     limits = c(0.5,5.5),
     labels = c("(0-20%]", "(20-40%]", "(40-60%]", "(60-80%]", "(80-100%]"),
     breaks = (seq(from = 1, to = 5, by = 1))) +
   scale_y_continuous(
     name = "Correlation Coefficients",
-    limits = c(-0.4, 0.7),
-    breaks = seq(from = -0.4, to = 0.6, by = 0.1),
+    limits = c(-0.25, 0.7),
+    breaks = seq(from = -0.2, to = 0.6, by = 0.1),
     expand = c(0, 0)) +
   scale_color_gradient(
     aesthetics = c("color", "fill"), 

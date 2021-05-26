@@ -190,7 +190,7 @@ plot_20_c <- joined_bars %>%
     name = "",
     labels = c("aa", "Class"))+
   scale_y_continuous(
-    name = "Frequency at which \n Predicted Consensus is Wild Type",
+    name = "Frequency at which \n predicted consensus is wild type",
     limits = c(0, 100),
     breaks = seq(0, 100, by = 10),
     labels = paste0(seq(0, 100, by = 10), "%"),

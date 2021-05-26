@@ -1,4 +1,4 @@
-# this program sorts alignments 
+# this program makes sure each protein alignment has more sequences that "min_seqs".
 import os
 import sys
 from shutil import copyfile
