@@ -90,11 +90,18 @@ cor_coeffs <- lm_summary %>%
 p_values <- lm_summary %>%
   select(gene, box_size, p.value)
 
+new_p_values <- p_values %>%
+  nest(data = -c(box_size)) %>%
+  mutate(
+    new_p = map(data, ~p.adjust(.x$p.value, method = "fdr", n = length(.x$p.value)))
+  ) %>%
+  unnest(cols = c(data, new_p))
+
 # removing genes that are not found across all 5 similarity groups:
 cor_coeffs_wide <- cor_coeffs %>%
   pivot_wider(names_from = box_size, values_from = r.squared)
 
-p_values_wide <- p_values %>%
+p_values_wide <- new_p_values %>%
   pivot_wider(names_from = box_size, values_from = p.value)
 
 cor_coeffs_reduced <- na.omit(cor_coeffs_wide)

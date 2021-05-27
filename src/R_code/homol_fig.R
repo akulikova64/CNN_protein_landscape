@@ -9,7 +9,7 @@ plot_a <- homol_data %>%
   ggplot(aes(x = percent_homol)) +
   geom_density(fill = "seashell3", color = "seashell4") +
   scale_x_continuous(
-    name = "% Sequence Similarity of Alignment",
+    name = "Percent sequence similarity to wild type",
     limits = c(0.0, 1.01),
     breaks = seq(from = 0.0, to = 1.0, by = 0.1),
     expand = c(0, 0)) +
