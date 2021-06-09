@@ -36,14 +36,14 @@ def get_class_freq(line):
   positive = ["R", "K"]
   aromatic = ["H", "Y", "F", "W"]
 
-  class_dict = {"unique":0, "aliphatic":0, "small polar":0, "negative":0, "positive":0, "aromatic":0}
+  class_dict = {"unique":0, "aliphatic":0, "small_polar":0, "negative":0, "positive":0, "aromatic":0}
   for i, aa in enumerate(aaList):
     if aa in unique:
       class_dict["unique"] += float(line[i+10])
     if aa in aliphatic:
       class_dict["aliphatic"] += float(line[i+10]) 
     if aa in small_polar:
-      class_dict["small polar"] += float(line[i+10])
+      class_dict["small_polar"] += float(line[i+10])
     if aa in negative:
       class_dict["negative"] += float(line[i+10])
     if aa in positive:
@@ -66,14 +66,14 @@ def get_class_freq_2(wt_aa, line):
   positive = ["R", "K"]
   aromatic = ["H", "Y", "F", "W"]
 
-  class_dict = {"unique":0, "aliphatic":0, "small polar":0, "negative":0, "positive":0, "aromatic":0}
+  class_dict = {"unique":0, "aliphatic":0, "small_polar":0, "negative":0, "positive":0, "aromatic":0}
   for i, aa in enumerate(aaList):
     if aa in unique:
       class_dict["unique"] += float(line[i+10])
     if aa in aliphatic:
       class_dict["aliphatic"] += float(line[i+10]) 
     if aa in small_polar:
-      class_dict["small polar"] += float(line[i+10])
+      class_dict["small_polar"] += float(line[i+10])
     if aa in negative:
       class_dict["negative"] += float(line[i+10])
     if aa in positive:
@@ -88,7 +88,7 @@ def get_class_freq_2(wt_aa, line):
   if wt_aa in aliphatic:
     aa_class = "aliphatic" 
   if wt_aa in small_polar:
-    aa_class = "small polar"
+    aa_class = "small_polar"
   if wt_aa in negative:
     aa_class = "negative"
   if wt_aa in positive:

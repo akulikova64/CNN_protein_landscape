@@ -75,7 +75,7 @@ def get_class_freq(freq, length):
   positive = ["R", "K"]
   aromatic = ["H", "Y", "F", "W"]
 
-  class_freq = [{"unique":0, "aliphatic":0, "small polar":0, "negative":0, "positive":0, "aromatic":0} for x in range(length)]
+  class_freq = [{"unique":0, "aliphatic":0, "small_polar":0, "negative":0, "positive":0, "aromatic":0} for x in range(length)]
   for i, col in enumerate(freq): # there are "length" columns
     for aa in col:
       if aa in unique:
@@ -83,7 +83,7 @@ def get_class_freq(freq, length):
       if aa in aliphatic:
         class_freq[i]["aliphatic"] += col[aa] 
       if aa in small_polar:
-        class_freq[i]["small polar"] += col[aa]
+        class_freq[i]["small_polar"] += col[aa]
       if aa in negative:
         class_freq[i]["negative"] += col[aa]
       if aa in positive:
@@ -136,7 +136,7 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
     # saving freq, entropy and n_eff values to CSV:
     #old: aa = ['H', 'E', 'D', 'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']
     aa = ['A', 'R', 'N',  'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
-    classes = ['unique', 'aliphatic', 'small polar', 'negative', 'positive', 'aromatic']
+    classes = ['unique', 'aliphatic', 'small_polar', 'negative', 'positive', 'aromatic']
     
     for position in range(length):
       freq_list = []

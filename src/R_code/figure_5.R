@@ -10,7 +10,6 @@ pred_wt_class = 0.713
 cnn_data <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/cnn_wt_max_freq.csv"), header=TRUE, sep=",")
 natural_data_all <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/natural_max_freq_files/natural_max_freq_all.csv"), header=TRUE, sep=",")
 natural_data_20 <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/natural_max_freq_files/natural_max_freq_20.csv"), header=TRUE, sep=",")
-natural_data_20 <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/natural_max_freq_files/natural_max_freq_20.csv"), header=TRUE, sep=",")
 natural_data_40 <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/natural_max_freq_files/natural_max_freq_40.csv"), header=TRUE, sep=",")
 natural_data_60 <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/natural_max_freq_files/natural_max_freq_60.csv"), header=TRUE, sep=",")
 natural_data_80 <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/natural_max_freq_files/natural_max_freq_80.csv"), header=TRUE, sep=",")
@@ -119,7 +118,7 @@ figure_5a <- stats_for_plot2 %>%
   
 figure_5a
 
-ggsave(filename = paste0("./analysis/figures/figure_5a_box_",box_size,".png"), plot = figure_5a, width = 8, height = 4)
+ggsave(filename = paste0("./analysis/figures/figure_5a_box_test",box_size,".png"), plot = figure_5a, width = 8, height = 4)
 
 #within aa class predictions plot.
 
@@ -160,7 +159,7 @@ figure_5b <- stats_for_class_plot2 %>%
 
 figure_5b
 
-ggsave(filename = paste0("./analysis/figures/figure_5b_",box_size,".png"), plot = figure_5b, width = 8, height = 4)
+ggsave(filename = paste0("./analysis/figures/figure_5b",box_size,".png"), plot = figure_5b, width = 8, height = 4)
 
 figure_5 <- plot_grid(figure_5a, figure_5b, nrow = 2, align="h", labels = c('a', 'b'))
 ggsave(filename = paste0("./analysis/figures/figure_5_",box_size,".png"), plot = figure_5, width = 8, height = 8)
@@ -175,5 +174,67 @@ ggsave(filename = paste0("./analysis/figures/figure_5_",box_size,".png"), plot =
 # 
 # #it works ... cool
 
+#lets make a supplementary figure with the accuracy of predicting wild type (not consensus), but using the proteins that are in each of the percent similarity groups. 
+
+# plot 5
+sup_5a <- stats_for_plot2 %>%
+  filter(condition == "freq_wt_cons") %>%
+  ggplot(aes(y = freq, x = fct_rev(perc_sim))) +
+  geom_violin(fill = "#8c7b9d", color = "#655775", alpha = 0.5) + 
+  geom_hline(yintercept = pred_wt_aa, linetype = "dashed", color = "#8a0f0f", alpha = 0.8, size = 0.85) +
+  #geom_sina(size = 0.2) +
+  stat_summary(fun.data=data_summary) +
+  theme_cowplot(16) + 
+  theme(plot.title = element_text(hjust = 0.5), 
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text = element_text(color = "black", size = 16),
+        panel.grid.major.y = element_line(color = "grey92", size=0.5)
+  ) +
+  #labs(title = "CNN Predictions Compared to Alignment Consensus", 
+  #subtitle = "Amino Acid Predictions") +
+  scale_x_discrete(
+    name = "Percent sequence similarity to wild type"
+  ) +
+  scale_y_continuous(
+    name = "Accuracy",
+    limits = c(0, 1.0),
+    breaks = seq(from = 0, to = 1.0, by = 0.1),
+    expand = c(0, 0))
+
+sup_5a
+
+ggsave(filename = paste0("./analysis/figures/figure_sup5a",box_size,".png"), plot = sup_5a, width = 8, height = 4)
+
+#within aa class predictions plot.
+
+# plot 5b
+sup_5b <- stats_for_class_plot2 %>%
+  filter(condition == "freq_wt_cons") %>%
+  ggplot(aes(y = freq, x = fct_rev(perc_sim))) +
+  geom_violin(fill = "#d2a92d", color = "#8a7228", alpha = 0.5) + 
+  geom_hline(yintercept = pred_wt_class, linetype = "dashed", color = "#8a0f0f", alpha = 0.8, size = 0.85) +
+  #geom_sina(size = 0.2) +
+  stat_summary(fun.data=data_summary) +
+  theme_cowplot(16) + 
+  theme(plot.title = element_text(hjust = 0.5), 
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text = element_text(color = "black", size = 16),
+        panel.grid.major.y = element_line(color = "grey92", size=0.5)) +
+  #labs(title = "CNN Predictions Compared to Alignment Consensus", 
+  #subtitle = "Within Class Predictions") +
+  scale_x_discrete(
+    name = "Percent sequence similarity to wild type") +
+  scale_y_continuous(
+    name = "Accuracy",
+    limits = c(0, 1.0),
+    breaks = seq(from = 0, to = 1.0, by = 0.1),
+    expand = c(0, 0))
+
+sup_5b
+
+ggsave(filename = paste0("./analysis/figures/figure_sup5b",box_size,".png"), plot = sup_5b, width = 8, height = 4)
+
+sup_5 <- plot_grid(sup_5a, sup_5b, nrow = 2, align="h", labels = c('a', 'b'))
+ggsave(filename = paste0("./analysis/figures/figure_5ab",box_size,".png"), plot = sup_5, width = 8, height = 8)
 
 

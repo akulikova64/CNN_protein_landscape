@@ -96,13 +96,17 @@ new_p_values <- p_values %>%
     new_p = map(data, ~p.adjust(.x$p.value, method = "fdr", n = length(.x$p.value)))
   ) %>%
   unnest(cols = c(data, new_p))
+new_p_values
 
 # removing genes that are not found across all 5 similarity groups:
 cor_coeffs_wide <- cor_coeffs %>%
   pivot_wider(names_from = box_size, values_from = r.squared)
 
+#here is where the error is. 
 p_values_wide <- new_p_values %>%
-  pivot_wider(names_from = box_size, values_from = p.value)
+  select(-p.value) %>%
+  pivot_wider(names_from = box_size, values_from = new_p)
+p_values_wide
 
 cor_coeffs_reduced <- na.omit(cor_coeffs_wide)
 p_values_reduced <- na.omit(p_values_wide)
@@ -114,7 +118,7 @@ cor_coeffs <- cor_coeffs_reduced %>%
     names_to = "box_size", 
     values_to = c("r_squared"))
 
-p_values <- p_values_reduced %>%
+p_values <- p_values_wide %>%
   pivot_longer(
     cols = -gene, 
     names_to = "box_size", 
@@ -221,8 +225,8 @@ plot_a <- ggplot() +
     expand = c(0, 0)) +
   scale_y_continuous(
     name = "Correlation Coefficients",
-    limits = c(-0.4, 0.7),
-    breaks = seq(from = -0.4, to = 0.6, by = 0.1),
+    limits = c(-0.2, 0.7),
+    breaks = seq(from = -0.2, to = 0.6, by = 0.1),
     expand = c(0, 0)) +
   scale_color_gradient(
     aesthetics = c("color", "fill"), 

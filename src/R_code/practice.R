@@ -18,5 +18,5 @@ new_p_values <- table %>%
   mutate(
     new_p = map(data, ~p.adjust(.x$p_value, method = "fdr", n = length(.x$p_value)))
   ) %>%
-  unnest(cols = )
+  unnest(cols = c(data, new_p))
 

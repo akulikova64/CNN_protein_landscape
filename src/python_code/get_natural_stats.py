@@ -74,7 +74,7 @@ def get_class_freq(freq, length):
   positive = ["R", "K"]
   aromatic = ["H", "Y", "F", "W"]
 
-  class_freq = [{"unique":0, "aliphatic":0, "small polar":0, "negative":0, "positive":0, "aromatic":0} for x in range(length)]
+  class_freq = [{"unique":0, "aliphatic":0, "small_polar":0, "negative":0, "positive":0, "aromatic":0} for x in range(length)]
   for i, col in enumerate(freq): # there are "length" columns
     for aa in col:
       if aa in unique:
@@ -82,7 +82,7 @@ def get_class_freq(freq, length):
       if aa in aliphatic:
         class_freq[i]["aliphatic"] += col[aa] 
       if aa in small_polar:
-        class_freq[i]["small polar"] += col[aa]
+        class_freq[i]["small_polar"] += col[aa]
       if aa in negative:
         class_freq[i]["negative"] += col[aa]
       if aa in positive:
@@ -100,10 +100,13 @@ for group_name in group_list:
   output_path = "../../output/output_PSICOV/stats_align_files/stats_align_" + group_name + ".csv"
 
   # for group names: 40, 60 and 80, alignments must be longer than "min_seqs". 
+  
   if group_name != "20" or group_name != "100":
     input_path = "../../data/PSICOV/aln_filtered_" + str(min_seqs) + "/aln_" + group_name + "/" #input multiple sequence aligments path
   else:
     input_path = "../../data/PSICOV/aln_" + group_name + "/" #input multiple sequence aligments path
+
+  #input_path = "../../data/PSICOV/aln_" + group_name + "/" #input multiple sequence aligments path
 
   #list of protein sequence alignments:
   protein_list = os.listdir(input_path)
@@ -142,8 +145,8 @@ for group_name in group_list:
 
       # saving freq, entropy and n_eff values to CSV:
       #old: aa = ['H', 'E', 'D', 'R', 'K', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C']
-      aa = ['A', 'R', 'N',  'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
-      classes = ['unique', 'aliphatic', 'small polar', 'negative', 'positive', 'aromatic']
+      aa = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
+      classes = ['unique', 'aliphatic', 'small_polar', 'negative', 'positive', 'aromatic']
       
       for position in range(length):
         freq_list = []
