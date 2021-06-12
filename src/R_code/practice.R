@@ -20,3 +20,7 @@ new_p_values <- table %>%
   ) %>%
   unnest(cols = c(data, new_p))
 
+
+
+
+

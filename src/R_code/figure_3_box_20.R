@@ -341,14 +341,14 @@ plot_20_b1 <- for_heatplot_with_classes %>%
 
 plot_20_b1
 
-figure_3abcd <- plot_grid(plot_20_a1, plot_20_a2, plot_20_b1, plot_20_b2, rel_widths = c(1, 1, 1, 1), nrow = 2, labels = c('A', 'B', 'C', 'D'), label_x = 0)
+figure_3abcd <- plot_grid(plot_20_a1, plot_20_a2, plot_20_b1, plot_20_b2, rel_widths = c(1, 1, 1, 1), nrow = 2, axis = "btrl", labels = c('A', 'B', 'C', 'D'), label_x = 0)
 ggsave(filename = "./analysis/figures/figure_3abcd.png", plot = figure_3abcd, width = 6.5, height = 6.5)
 
 
 #figure_3_almost <- plot_grid(figure_3a, figure_3b, nrow = 2, align="h", labels = c('', ''))
 #figure_3_almost
 
-figure_3 <- plot_grid(figure_3abcd, legend, nrow = 1, rel_widths = c(3, 1), scale = c(1, 0.75), labels = c('', ''))
+figure_3 <- plot_grid(figure_3abcd, legend, nrow = 1, rel_widths = c(3, 1), scale = c(1, 0.80), labels = c('', ''))
 
 ggsave(filename = "./analysis/figures/figure_3_box_20.png", plot = figure_3, width = 9, height = 6.5)
 

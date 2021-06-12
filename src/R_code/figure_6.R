@@ -345,13 +345,16 @@ ggsave(filename = paste0("./analysis/figures/figure_6b_box_",box_size,".png"), p
 #================================================================================================================
 #=====================================================================================================
 
-cnn_data <- read.csv(file = paste0("./data/PSICOV_box_",box_size,"/output/cnn_wt_max_freq.csv"), header=TRUE, sep=",")
-  
+cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
+
 wt_classes <- cnn_data %>%
   filter(group == "wt") %>%
   select(gene, position, aa_class)
 
 wt_labels <- inner_join(wt_classes, all_joined)
+
+wt_labels <- wt_labels %>%
+  mutate(aa_class = fct_recode(aa_class, `small polar` = "small_polar"))
 
 wt_labels_wide <- wt_labels %>%
   select(-n_eff_class) %>%
@@ -434,6 +437,7 @@ all_data <- cor3_reduced %>%
     color_y = sum(cor * (perc_sim == "(80-100%]"))
   ) 
 
+scaleFUN <- function(x) sprintf("%.1f", x)
 
 plot_c <- ggplot() +
   geom_path(
@@ -456,14 +460,15 @@ plot_c <- ggplot() +
     color = "black",
     size = 2, 
     position = position_jitter(width = 0.07, height = 0, seed = 123)) +
-  facet_wrap(vars(aa_class)) +
+  facet_wrap(vars(aa_class), ncol = 2) +
   scale_x_discrete(
-    name = "% Sequence Similarity of Alignment") +
+    name = "Percent sequence similarity to wild type") +
   scale_y_continuous(
     name = "Correlation Coefficients",
-    limits = c(-0.5, 1.02),
-    breaks = seq(from = -0.4, to = 1.0, by = 0.1),
-    expand = c(0, 0.1)) +
+    limits = c(-0.6, 1.0),
+    breaks = seq(from = -0.6, to = 1.0, by = 0.2),
+    expand = c(0.02, 0.02),
+    labels = scaleFUN) +
   scale_color_gradient(
     aesthetics = c("color", "fill"), 
     high = "#ffd966", 
@@ -477,7 +482,7 @@ plot_c <- ggplot() +
 
 plot_c
 
-ggsave(filename = paste0("./analysis/figures/figure_6c_box_",box_size,".png"), plot = plot_c, width = 13.5, height = 6)
+ggsave(filename = paste0("./analysis/figures/figure_6c_box_20.png"), plot = plot_c, width = 10, height = 9)
 
 #==============================================================================================
 # SUPPLEMENTARY PLOT: boxplot of number of seqs per protein for each seq similarity group:
@@ -504,7 +509,7 @@ ggplot(aes(x = factor(group), y = seq_count)) +
 
 plot_d
   
-ggsave(filename = "./analysis/figures/figure_6d.png", plot = plot_d, width = 10, height = 6)
+ggsave(filename = "./analysis/figures/aln_seq_count.png", plot = plot_d, width = 7.5, height = 6)
 
 
 
