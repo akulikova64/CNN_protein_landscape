@@ -195,7 +195,7 @@ ggsave(filename = "./analysis/figures/positions_per_bin.png", plot = box_plot, w
 
 
 #===============================================================================================
-# Looking how natural/predicted amino acid distributions relate to CNN confidence 
+# Looking how predicted amino acid distributions relate to CNN confidence 
 #===============================================================================================
 
 calc_class <- function(x) {
@@ -279,45 +279,50 @@ wt_fract <- wide %>%
   group_by(aa_wt) %>%
   count() %>%
   ungroup() %>%
-  mutate(sum = sum(n)) %>%
-  mutate(fract = n/sum) %>%
-  select(-c(n, sum)) %>%
+  #mutate(sum = sum(n))
+  #mutate(fract = n/sum) %>%
+  #select(-c(n, sum)) %>%
   rename(aa_predicted = aa_wt) #renaming to an incorrect name so that we can do a join later
 
 # normalizing the aa count per bin: 
 # multiplying the aa count per bin by the total fraction of that amino acid in the wt structures:
 aa_counts_norm <- aa_counts %>%
-  left_join( wt_fract) %>%
-  mutate(norm_count = aa_count*fract) %>%
-  select(-c(aa_count, fract))
+  left_join(wt_fract) %>%
+  mutate(norm_count = aa_count/n) %>%
+  select(-c(aa_count, n))
   
 
-# what is this?
-aa_per_bin <- with_classes %>%
+# now I need to add up all aa within each (normaized!!!) bin to get bin totals and append this to the aa_counts
+for_barplot <- aa_counts_norm %>%
   group_by(pred_bin) %>%
-  count() %>%
-  mutate(bin_count = n) %>%
-  select(-n) %>%
+  mutate(bin_count = sum(norm_count)) %>%
   ungroup()
 
-for_barplot <- left_join(aa_counts, aa_per_bin)
-
+# adding the class labels
 with_classes <- for_barplot %>%
   mutate(class = map_chr(aa_predicted, calc_class))
 
-
 for_barplot_2 <- with_classes %>%
-  mutate(freq = aa_count/bin_count) %>%
-  select(-c(aa_count, bin_count))
+  mutate(freq = norm_count/bin_count) %>%
+  select(-c(norm_count, bin_count)) %>%
+  mutate(aa_predicted = fct_rev(fct_relevel(aa_predicted, "G", "L", "P", "I", "W", "F", "C", "V", "D", "A", "T", "Y", "M", "S", "E", "R", "N", "H", "K", "Q"))) %>%
+  mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
+
+
+# figureing out the order for the first facet:
+order <- for_barplot_2 %>%
+  filter(pred_bin == "Predicted at 75-100% confidence")
 
 plot_e <- for_barplot_2 %>%
-  ggplot(aes(x = freq, y = fct_reorder(aa_predicted, freq), fill = class)) +
-  geom_col() +
+  ggplot(aes(x = freq, y = aa_predicted, fill = class)) +
+  geom_col(alpha = 0.8) +
   facet_wrap(vars(fct_relevel(pred_bin, "Predicted at 75-100% confidence", "Predicted at 50-75% confidence", "Predicted at 25-50% confidence", "Predicted at 0-25% confidence"))) +
+  scale_fill_manual(
+    values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e")) +
   scale_x_continuous(
-    name = "Amino acid frequency \n (Normalized by aa abundance)",
-    limits = c(0.0, 0.2),
-    breaks = seq(0.0, 0.2, by = 0.04),
+    name = "Frequency within confidence bin \n (normalized by wt aa abundance)",
+    limits = c(0.0, 0.14),
+    breaks = seq(0.0, 0.14, by = 0.02),
     expand = c(0, 0)) + 
   scale_y_discrete(
     name = "Predicted amino acid",
@@ -333,6 +338,149 @@ plot_e <- for_barplot_2 %>%
 plot_e
 
 ggsave(filename = "./analysis/figures/Pred_aa_freq.png", plot = plot_e, width = 11, height = 8)
+
+#===============================================================================================
+#  natural amino acid distributions within their MSA frequency bins
+#===============================================================================================
+
+calc_class <- function(x) {
+  aliphatic = c("M", "L", "I", "V", "A")
+  small_polar = c("C", "S", "T", "N", "Q")
+  negative = c("D", "E")
+  positive = c("R", "K")
+  aromatic = c("H", "Y", "W", "F")
+  unique = c("P", "G")
+  
+  if (x %in% aliphatic) {
+    return("aliphatic")
+  }
+  if (x %in% small_polar) {
+    return("small_polar")
+  }
+  if (x %in% negative) {
+    return("negative")
+  }
+  if (x %in% positive) {
+    return("positive")
+  }
+  if (x %in% aromatic) {
+    return("aromatic")
+  }
+  if (x %in% unique) {
+    return("unique")
+  }
+  return("not found")
+}
+
+get_pred_bin <- function(x) {
+  
+  if (x > 0 & x <= 0.25) {
+    return("Natural Frequency of 0-25%")
+  }
+  else if (x > 0.25 & x <= 0.50) {
+    return("Natural Frequency of 25-50%")
+  }
+  else if (x > 0.50 & x <= 0.75) {
+    return("Natural Frequency of 50-75%")
+  }
+  else if (x > 0.75 & x <= 1.0) {
+    return("Natural Frequency of 75-100%")
+  }
+}
+
+# set working directory to: "Desktop/Natural_var_project/"
+# loading data
+cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
+natural_data <- read.csv(file = "./data/PSICOV_box_20/output/natural_max_freq_files/natural_max_freq_all.csv", header=TRUE, sep=",")
+
+joined_data <- rbind(x = cnn_data, y = natural_data)
+
+joined_data_trimmed <- joined_data %>%
+  filter(!gene %in% c('1dbx', '1eaz', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc', '2tps'))
+
+wide <- joined_data_trimmed %>%
+  select(-c(aa_class, class_freq)) %>%
+  pivot_wider(names_from = group, values_from = c(freq, aa)) 
+
+wide_new <- wide %>%
+  na.omit() %>%
+  mutate(nat_bin = map_chr(freq_natural_wt, get_pred_bin))
+
+new_data <- wide_new %>%
+  select(c(aa_wt, nat_bin))
+
+# finds the count of each aa acid per bin:
+aa_counts <- new_data %>%
+  group_by(nat_bin) %>%
+  count(aa_wt) %>%
+  mutate(aa_count = n) %>%
+  select(-n) %>%
+  ungroup()
+
+# getting aa fractions in the wild type structures (# alanines/ # total sites)
+wt_fract <- wide %>%
+  select(gene, position, aa_wt) %>%
+  na.omit() %>%
+  group_by(aa_wt) %>%
+  count() %>%
+  ungroup() 
+  #mutate(sum = sum(n))
+  #mutate(fract = n/sum) %>%
+  #select(-c(n, sum)) %>%
+
+# normalizing the aa count per bin: 
+# multiplying the aa count per bin by the total fraction of that amino acid in the wt structures:
+aa_counts_norm <- aa_counts %>%
+  left_join(wt_fract) %>%
+  mutate(norm_count = aa_count/n) %>%
+  select(-c(aa_count, n))
+
+# now I need to add up all aa within each (normaized!!!) bin to get bin totals and append this to the aa_counts
+for_barplot <- aa_counts_norm %>%
+  group_by(nat_bin) %>%
+  mutate(bin_count = sum(norm_count)) %>%
+  ungroup()
+
+# adding the class labels
+with_classes <- for_barplot %>%
+  mutate(class = map_chr(aa_wt, calc_class))
+
+for_barplot_2 <- with_classes %>%
+  mutate(freq = norm_count/bin_count) %>%
+  select(-c(norm_count, bin_count)) %>%
+  mutate(aa_wt = fct_rev(fct_relevel(aa_wt, "G", "L", "P", "I", "W", "F", "C", "V", "D", "A", "T", "Y", "M", "S", "E", "R", "N", "H", "K", "Q"))) %>%
+  mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
+
+
+# figuring out the order for the first facet:
+order <- for_barplot_2 %>%
+  filter(nat_bin == "Natural Frequency of 75-100%")
+
+plot_g <- for_barplot_2 %>%
+  ggplot(aes(x = freq, y = aa_wt, fill = class)) +
+  geom_col(alpha = 0.8) +
+  facet_wrap(vars(fct_relevel(nat_bin, "Natural Frequency of 75-100%", "Natural Frequency of 50-75%", "Natural Frequency of 25-50%", "Natural Frequency of 0-25%"))) +
+  scale_fill_manual(
+    values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e")) +
+  scale_x_continuous(
+    name = "Frequency within natural frequency bin \n (normalized by wt aa abundance)",
+    limits = c(0.0, 0.24),
+    breaks = seq(0.0, 0.24, by = 0.04),
+    expand = c(0, 0)) + 
+  scale_y_discrete(
+    name = "Wild type amino acid",
+    expand = c(0.03, 0.03)) + 
+  theme_cowplot(14) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"))
+
+plot_g
+
+ggsave(filename = "./analysis/figures/nat_aa_freq.png", plot = plot_g, width = 11, height = 8)
 
 
 

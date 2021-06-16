@@ -102,7 +102,7 @@ ggsave(filename = "./analysis/figures/sorted_by_ln.png", plot = plot_a, width = 
 # Looking at top 10 highest ln() and top 10 lowest ln()
 #=================================================================
 
-threshold <- 10
+threshold <- 500
 
 ratio_clean <- ratio %>%
   select(c(gene, position, aa_predicted, aa_natural_max, ln_ratio)) 
@@ -110,7 +110,6 @@ ratio_clean <- ratio %>%
 zeros_top <- ratio %>%
   select(c(gene, position, aa_predicted, aa_natural_max, ln_ratio, freq_predicted)) %>%
   filter(ln_ratio == 0) %>%
-  group_by(gene) %>%
   slice_max(n = threshold, order_by = freq_predicted, with_ties = FALSE) %>%
   mutate(bin = "zeros_top") %>%
   select(-freq_predicted)
@@ -118,20 +117,17 @@ zeros_top <- ratio %>%
 zeros_bottom <- ratio %>%
   select(c(gene, position, aa_predicted, aa_natural_max, ln_ratio, freq_predicted)) %>%
   filter(ln_ratio == 0) %>%
-  group_by(gene) %>%
   slice_min(n = threshold, order_by = freq_predicted, with_ties = FALSE) %>%
   mutate(bin = "zeros_bottom") %>%
   select(-freq_predicted)
 
 top_10 <- ratio_clean %>%
   filter(ln_ratio != 0) %>%
-  group_by(gene) %>%
   slice_max(n=threshold, order_by = ln_ratio, with_ties = FALSE) %>%
   mutate(bin = "top_10")
 
 low_10 <- ratio_clean %>%
   filter(ln_ratio != 0) %>%
-  group_by(gene) %>%
   slice_min(n=threshold, order_by = ln_ratio, with_ties = FALSE) %>%
   mutate(bin = "low_10")
 
@@ -141,8 +137,8 @@ matches <- joined_bins %>%
   mutate(match_predict_cons = aa_predicted == aa_natural_max)
 
 for_plot_b <- matches %>%
-  select(c(gene, position, bin, match_predict_cons )) %>%
-  group_by(gene, bin) %>%
+  select(c(position, bin, match_predict_cons )) %>%
+  group_by(bin) %>%
   summarise(freq_predict_cons = sum(match_predict_cons, na.rm = TRUE)/sum(!is.na(match_predict_cons)))
 
 custom_fills <- c("#8c7b9d", "#d2a92d", "#80b380", "#80b380")
