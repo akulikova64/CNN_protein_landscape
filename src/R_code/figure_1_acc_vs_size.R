@@ -229,3 +229,185 @@ plot_d
 
 figure_1_all <- plot_grid(plot_c, plot_d, nrow = 1, axis = "t", align="h", labels = c('a', 'b'))
 ggsave(filename = paste0("./analysis/figures/figure_1_boxsize.png"), plot = figure_1_all, width = 10, height = 4)
+
+
+#=======================================================================================
+# Performing a paired t-test between box sizes (predicting the wild type)
+#=======================================================================================
+
+
+# for single amino acids:
+for_ttests <- stats_1 %>%
+  select(c(gene, box_size, freq_predict_wt))
+
+averages <- for_ttests %>%
+  group_by(box_size) %>%
+  summarise(mean = mean(freq_predict_wt))
+averages
+
+for_paired_test <- for_ttests %>%
+  pivot_wider(names_from = box_size, values_from = freq_predict_wt) %>%
+  rename("box_12" = `12`,
+         "box_20" = `20`,
+         "box_30" = `30`,
+         "box_40" = `40`)
+
+results_1 <- t.test(for_paired_test$box_12, for_paired_test$box_20, paired = TRUE, alternative = "two.sided")
+results_1
+#p-value = 1.108e-10 (there is a significant difference)
+
+results_2 <- t.test(for_paired_test$box_12, for_paired_test$box_30, paired = TRUE, alternative = "two.sided")
+results_2
+#p-value = 2.2e-16 (there is a significant difference)
+
+results_3 <- t.test(for_paired_test$box_12, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_3
+#p-value = 7.738e-13 (there is a significant difference)
+
+results_4 <- t.test(for_paired_test$box_20, for_paired_test$box_30, paired = TRUE, alternative = "two.sided")
+results_4
+#p-value = 9.121e-05 (there is a significant difference)
+
+results_5 <- t.test(for_paired_test$box_20, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_5
+#p-value = 0.137 (there is no difference)
+
+results_6 <- t.test(for_paired_test$box_30, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_6
+#p-value = 0.0073 (there is a significant difference)
+
+#==================================================================================================
+# for classes:
+
+for_ttests_2 <- stats_2 %>%
+  select(c(gene, box_size, freq_predict_wt))
+
+averages_2 <- for_ttests_2 %>%
+  group_by(box_size) %>%
+  summarise(mean = mean(freq_predict_wt))
+averages_2
+#
+
+for_paired_test <- for_ttests_2 %>%
+  pivot_wider(names_from = box_size, values_from = cor) %>%
+  rename("box_12" = `12`,
+         "box_20" = `20`,
+         "box_30" = `30`,
+         "box_40" = `40`)
+
+
+results_1b <- t.test(for_paired_test$box_12, for_paired_test$box_20, paired = TRUE, alternative = "two.sided")
+results_1b
+#p-value = 0.4402 (no difference)
+
+results_2b <- t.test(for_paired_test$box_12, for_paired_test$box_30, paired = TRUE, alternative = "two.sided")
+results_2b
+#p-value = 0.0093 (there is a significant difference)
+
+results_3b <- t.test(for_paired_test$box_12, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_3b
+#p-value = 3.5730e-06 (there is a significant difference)
+
+results_4b <- t.test(for_paired_test$box_20, for_paired_test$box_30, paired = TRUE, alternative = "two.sided")
+results_4b
+#p-value = 0.0276 (there is a significant difference)
+
+results_5b <- t.test(for_paired_test$box_20, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_5b
+#p-value = 3.1390e-05 (there is a significant difference)
+
+results_6b <- t.test(for_paired_test$box_30, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_6b
+#p-value = 0.0067 (there is a significant difference)
+
+#=======================================================================================
+# Performing a paired t-test between box sizes (predicting the consensus)
+#=======================================================================================
+
+
+# for single amino acids:
+for_ttests <- stats_3 %>%
+  select(c(gene, box_size, freq_predict_cons))
+
+averages <- for_ttests %>%
+  group_by(box_size) %>%
+  summarise(mean = mean(freq_predict_cons))
+averages
+
+for_paired_test <- for_ttests %>%
+  pivot_wider(names_from = box_size, values_from = freq_predict_cons) %>%
+  rename("box_12" = `12`,
+         "box_20" = `20`,
+         "box_30" = `30`,
+         "box_40" = `40`)
+
+results_1 <- t.test(for_paired_test$box_12, for_paired_test$box_20, paired = TRUE, alternative = "two.sided")
+results_1
+#p-value = 0.0026 (there is a significant difference)
+
+results_2 <- t.test(for_paired_test$box_12, for_paired_test$box_30, paired = TRUE, alternative = "two.sided")
+results_2
+#p-value = 6.568e-06 (there is a significant difference)
+
+results_3 <- t.test(for_paired_test$box_12, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_3
+#p-value = 0.000149 (there is a significant difference)
+
+results_4 <- t.test(for_paired_test$box_20, for_paired_test$box_30, paired = TRUE, alternative = "two.sided")
+results_4
+#p-value = 0.1082 (no difference)
+
+results_5 <- t.test(for_paired_test$box_20, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_5
+#p-value = 0.1678 (no difference)
+
+results_6 <- t.test(for_paired_test$box_30, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_6
+#p-value = 0.8333 (no difference)
+
+#==================================================================================================
+# for classes:
+
+for_ttests_2 <- stats_4 %>%
+  select(c(gene, box_size, freq_predict_cons))
+
+averages_2 <- for_ttests_2 %>%
+  group_by(box_size) %>%
+  summarise(mean = mean(freq_predict_cons))
+averages_2
+
+
+for_paired_test <- for_ttests_2 %>%
+  pivot_wider(names_from = box_size, values_from = freq_predict_cons) %>%
+  rename("box_12" = `12`,
+         "box_20" = `20`,
+         "box_30" = `30`,
+         "box_40" = `40`)
+
+
+results_1b <- t.test(for_paired_test$box_12, for_paired_test$box_20, paired = TRUE, alternative = "two.sided")
+results_1b
+#p-value = 0.2573 (no difference)
+
+results_2b <- t.test(for_paired_test$box_12, for_paired_test$box_30, paired = TRUE, alternative = "two.sided")
+results_2b
+#p-value = 0.000309 (there is a significant difference)
+
+results_3b <- t.test(for_paired_test$box_12, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_3b
+#p-value = 0.0075516 (there is a significant difference)
+
+results_4b <- t.test(for_paired_test$box_20, for_paired_test$box_30, paired = TRUE, alternative = "two.sided")
+results_4b
+#p-value = 0.002141 (there is a significant difference)
+
+results_5b <- t.test(for_paired_test$box_20, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_5b
+#p-value = 0.06939 (no difference)
+
+results_6b <- t.test(for_paired_test$box_30, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_6b
+#p-value = 0.2147 (no difference)
+
+
+

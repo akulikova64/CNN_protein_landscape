@@ -19,3 +19,14 @@ table <- tibble(col1 = c("a", "b", "c", "d"))
 
 new_table <- table %>%
   mutate(col2 = map_chr(col1, calc))
+
+
+
+
+
+
+
+
+
+
+

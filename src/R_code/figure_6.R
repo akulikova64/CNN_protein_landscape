@@ -553,4 +553,56 @@ a <- cor_reduced %>%
   theme(legend.position="none")
 
 
+#=======================================================================================
+# t-tests for plor a
+#=======================================================================================
+
+for_ttests <- sig_cor %>%
+  select(c(gene, perc_sim, cor))
+
+averages <- for_ttests %>%
+  group_by(perc_sim) %>%
+  summarise(mean = mean(cor))
+averages
+
+for_paired_test <- for_ttests %>%
+  pivot_wider(names_from = perc_sim, values_from = cor) %>%
+  rename("to20" = `(0-20%]`,
+         "to40" = `(20-40%]`,
+          "to60" = `(40-60%]`,
+          "to80" = `(60-80%]`,
+         "to100" = `(80-100%]`)
+
+
+results_1 <- t.test(for_paired_test$to20, for_paired_test$to40, paired = TRUE, alternative = "two.sided")
+results_1
+#p-value = 5.825e-07 (there is a significant difference)
+
+results_2 <- t.test(for_paired_test$to40, for_paired_test$to60, paired = TRUE, alternative = "two.sided")
+results_2
+#p-value = 0.1257 (no difference)
+
+results_3 <- t.test(for_paired_test$to60, for_paired_test$to80, paired = TRUE, alternative = "two.sided")
+results_3
+#p-value = 0.7802 (no difference)
+
+results_4 <- t.test(for_paired_test$to80, for_paired_test$to100, paired = TRUE, alternative = "two.sided")
+results_4
+#p-value = 0.0025 (there is a significant difference)
+
+results_5 <- t.test(for_paired_test$to40, for_paired_test$to80, paired = TRUE, alternative = "two.sided")
+results_5
+#p-value = 0.3758 (no difference)
+
+results_6 <- t.test(for_paired_test$to20, for_paired_test$to60, paired = TRUE, alternative = "two.sided")
+results_6
+#p-value = 0.001395 (there is a significant difference)
+
+results_7 <- t.test(for_paired_test$to60, for_paired_test$to100, paired = TRUE, alternative = "two.sided")
+results_7
+#p-value = 0.001549 (there is a significant difference)
+
+
+
+
 

@@ -242,6 +242,54 @@ plot_a
 
 ggsave(filename = paste0("./analysis/figures/figure_6_box_size.png"), plot = plot_a, width = 8, height = 4)
 
+#=======================================================================================
+# Performing a paired t-test between the 12A box and 20A box. 
+#=======================================================================================
+
+for_ttests <- joined_final %>%
+  select(c(gene, box_size, cor))
+
+averages <- for_ttests %>%
+  group_by(box_size) %>%
+  summarise(mean = mean(cor))
+
+
+for_paired_test <- for_ttests %>%
+  pivot_wider(names_from = box_size, values_from = cor) %>%
+  rename("box_12" = `12`,
+         "box_20" = `20`,
+         "box_30" = `30`,
+         "box_40" = `40`)
+
+
+results_1 <- t.test(for_paired_test$box_12, for_paired_test$box_20, paired = TRUE, alternative = "two.sided")
+results_1
+#p-value = 0.4402 (can't reject null, no difference)
+
+results_2 <- t.test(for_paired_test$box_12, for_paired_test$box_30, paired = TRUE, alternative = "two.sided")
+results_2
+#p-value = 0.0093 (there is a significant difference)
+
+results_3 <- t.test(for_paired_test$box_12, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_3
+#p-value = 3.5730e-06 (there is a significant difference)
+
+results_4 <- t.test(for_paired_test$box_20, for_paired_test$box_30, paired = TRUE, alternative = "two.sided")
+results_4
+#p-value = 0.0276 (there is a significant difference)
+
+results_5 <- t.test(for_paired_test$box_20, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_5
+#p-value = 3.1390e-05 (there is a significant difference)
+
+results_6 <- t.test(for_paired_test$box_30, for_paired_test$box_40, paired = TRUE, alternative = "two.sided")
+results_6
+#p-value = 0.0067 (there is a significant difference)
+
+
+
+
+
 
 
 
