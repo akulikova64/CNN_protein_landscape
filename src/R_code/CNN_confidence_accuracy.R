@@ -229,17 +229,14 @@ calc_class <- function(x) {
 
 get_pred_bin <- function(x) {
   
-  if (x > 0 & x <= 0.25) {
-    return("Predicted at 0-25% confidence")
+  if (x > 0 & x <= 0.2) {
+    return("Predicted at 0-20% confidence")
   }
-  else if (x > 0.25 & x <= 0.50) {
-    return("Predicted at 25-50% confidence")
+  else if (x > 0.80 & x <= 1.0) {
+    return("Predicted at 80-100% confidence")
   }
-  else if (x > 0.50 & x <= 0.75) {
-    return("Predicted at 50-75% confidence")
-  }
-  else if (x > 0.75 & x <= 1.0) {
-    return("Predicted at 75-100% confidence")
+  else{
+    return(NA)
   }
 }
 
@@ -259,7 +256,8 @@ wide <- joined_data_trimmed %>%
 
 wide_new <- wide %>%
   na.omit() %>%
-  mutate(pred_bin = map_chr(freq_predicted, get_pred_bin))
+  mutate(pred_bin = map_chr(freq_predicted, get_pred_bin)) %>%
+  na.omit()
 
 new_data <- wide_new %>%
   select(c(aa_predicted, pred_bin))
@@ -305,24 +303,25 @@ with_classes <- for_barplot %>%
 for_barplot_2 <- with_classes %>%
   mutate(freq = norm_count/bin_count) %>%
   select(-c(norm_count, bin_count)) %>%
-  mutate(aa_predicted = fct_rev(fct_relevel(aa_predicted, "G", "L", "P", "I", "W", "F", "C", "V", "D", "A", "T", "Y", "M", "S", "E", "R", "N", "H", "K", "Q"))) %>%
+  mutate(aa_predicted = fct_rev(fct_relevel(aa_predicted, "G", "L", "P", "I", "W", "F", "C", "V", "D", "A", "M", "T", "S", "Y", "E", "N", "R", "H", "K", "Q"))) %>%
   mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
 
 
 # figureing out the order for the first facet:
 order <- for_barplot_2 %>%
-  filter(pred_bin == "Predicted at 75-100% confidence")
+  filter(pred_bin == "Predicted at 80-100% confidence")
 
 plot_e <- for_barplot_2 %>%
   ggplot(aes(x = freq, y = aa_predicted, fill = class)) +
   geom_col(alpha = 0.8) +
-  facet_wrap(vars(fct_relevel(pred_bin, "Predicted at 75-100% confidence", "Predicted at 50-75% confidence", "Predicted at 25-50% confidence", "Predicted at 0-25% confidence"))) +
+  facet_wrap(vars(fct_relevel(pred_bin, "Predicted at 80-100% confidence", "Predicted at 0-20% confidence")), ncol = 1) +
   scale_fill_manual(
-    values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e")) +
+    values = c("#99004d", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),
+    labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
   scale_x_continuous(
     name = "Frequency within confidence bin \n (normalized by wt aa abundance)",
-    limits = c(0.0, 0.14),
-    breaks = seq(0.0, 0.14, by = 0.02),
+    limits = c(0.0, 0.165),
+    breaks = seq(0.0, 0.16, by = 0.02),
     expand = c(0, 0)) + 
   scale_y_discrete(
     name = "Predicted amino acid",
@@ -333,7 +332,8 @@ plot_e <- for_barplot_2 %>%
     strip.text.x = element_text(size = 16),
     panel.grid.major.x = element_line(color = "grey92", size=0.5),
     panel.grid.minor.x = element_line(color = "grey92", size=0.5),
-    panel.spacing = unit(2, "lines"))
+    panel.spacing = unit(2, "lines"),
+    legend.position = "none")
 
 plot_e
 
@@ -374,17 +374,14 @@ calc_class <- function(x) {
 
 get_pred_bin <- function(x) {
   
-  if (x > 0 & x <= 0.25) {
-    return("Natural Frequency of 0-25%")
+  if (x > 0 & x <= 0.2) {
+    return("Natural Frequency of 0-20%")
   }
-  else if (x > 0.25 & x <= 0.50) {
-    return("Natural Frequency of 25-50%")
+  else if (x > 0.80 & x <= 1.0) {
+    return("Natural Frequency of 80-100%")
   }
-  else if (x > 0.50 & x <= 0.75) {
-    return("Natural Frequency of 50-75%")
-  }
-  else if (x > 0.75 & x <= 1.0) {
-    return("Natural Frequency of 75-100%")
+  else{
+    return(NA)
   }
 }
 
@@ -404,7 +401,8 @@ wide <- joined_data_trimmed %>%
 
 wide_new <- wide %>%
   na.omit() %>%
-  mutate(nat_bin = map_chr(freq_natural_wt, get_pred_bin))
+  mutate(nat_bin = map_chr(freq_natural_wt, get_pred_bin)) %>%
+  na.omit()
 
 new_data <- wide_new %>%
   select(c(aa_wt, nat_bin))
@@ -445,27 +443,28 @@ for_barplot <- aa_counts_norm %>%
 with_classes <- for_barplot %>%
   mutate(class = map_chr(aa_wt, calc_class))
 
-for_barplot_2 <- with_classes %>%
+for_barplot_3 <- with_classes %>%
   mutate(freq = norm_count/bin_count) %>%
   select(-c(norm_count, bin_count)) %>%
-  mutate(aa_wt = fct_rev(fct_relevel(aa_wt, "G", "L", "P", "I", "W", "F", "C", "V", "D", "A", "T", "Y", "M", "S", "E", "R", "N", "H", "K", "Q"))) %>%
+  mutate(aa_wt = fct_rev(fct_relevel(aa_wt, "G", "L", "P", "I", "W", "F", "C", "V", "D", "A", "M", "T", "S", "Y", "E", "N", "R", "H", "K", "Q"))) %>%
   mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
 
 
 # figuring out the order for the first facet:
-order <- for_barplot_2 %>%
-  filter(nat_bin == "Natural Frequency of 75-100%")
+order <- for_barplot_3 %>%
+  filter(nat_bin == "Natural Frequency of 80-100%")
 
-plot_g <- for_barplot_2 %>%
+plot_g <- for_barplot_3 %>%
   ggplot(aes(x = freq, y = aa_wt, fill = class)) +
   geom_col(alpha = 0.8) +
-  facet_wrap(vars(fct_relevel(nat_bin, "Natural Frequency of 75-100%", "Natural Frequency of 50-75%", "Natural Frequency of 25-50%", "Natural Frequency of 0-25%"))) +
+  facet_wrap(vars(fct_relevel(nat_bin, "Natural Frequency of 80-100%", "Natural Frequency of 0-20%")), ncol = 1) +
   scale_fill_manual(
-    values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e")) +
+    values = c("#99004d", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),
+    labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
   scale_x_continuous(
     name = "Frequency within natural frequency bin \n (normalized by wt aa abundance)",
-    limits = c(0.0, 0.24),
-    breaks = seq(0.0, 0.24, by = 0.04),
+    limits = c(0.0, 0.165),
+    breaks = seq(0.0, 0.16, by = 0.02),
     expand = c(0, 0)) + 
   scale_y_discrete(
     name = "Wild type amino acid",
@@ -482,9 +481,172 @@ plot_g
 
 ggsave(filename = "./analysis/figures/nat_aa_freq.png", plot = plot_g, width = 11, height = 8)
 
+figure_final <- plot_grid(plot_e, plot_g, nrow = 1, align = "h", labels = c('a', 'b'), rel_widths = c(1, 1.25))
+
+ggsave(filename = paste("./analysis/figures/aa_dist_CNN_conf.png"), plot = figure_final, width = 9.5, height = 8)
 
 
+#=====================================================================================
+# Natural N-eff distribution as a function of CNN confidence bins
+#=====================================================================================
 
+# set working directory to: "Desktop/Natural_var_project/"
+# loading data
+cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
+natural_data <- read.csv(file = "./data/PSICOV_box_20/output/natural_max_freq_files/natural_max_freq_all.csv", header=TRUE, sep=",")
+
+joined_data <- rbind(x = cnn_data, y = natural_data)
+
+joined_data_trimmed <- joined_data %>%
+  filter(!gene %in% c('1dbx', '1eaz', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc', '2tps'))
+
+wide <- joined_data_trimmed %>%
+  select(-c(aa_class, class_freq)) %>%
+  pivot_wider(names_from = group, values_from = c(freq, aa)) 
+
+
+get_pred_bin <- function(x) {
+  
+  if (x > 0 & x <= 0.2) {
+    return("(0-0.2]")
+  }
+  else if (x > 0.2 & x <= 0.4) {
+    return("(0.2-0.4]")
+  }
+  else if (x > 0.4 & x <= 0.6) {
+    return("(0.4-0.6]")
+  }
+  else if (x > 0.6 & x <= 0.8) {
+    return("(0.6-0.8]")
+  }
+  else if (x > 0.8 & x <= 1.0) {
+    return("(0.8-1.0]")
+  }
+}
+
+
+wide_new <- wide %>%
+  na.omit() %>%
+  mutate(pred_bin = map_chr(freq_predicted, get_pred_bin))
+
+
+conf_data <- wide_new %>%
+  select(c(gene, position, pred_bin)) 
+  
+#loading the n-eff values:
+cnn_var <- read.csv(file = paste0("./data/PSICOV_box_20/output/stats_cnn.csv"), header=TRUE, sep=",")
+
+cnn_var_clean <- cnn_var %>%
+  select(c(gene, position, n_eff)) 
+
+joined <- left_join(conf_data, cnn_var_clean)
+
+data_summary <- function(x) {
+  m <- mean(x)
+  ymin <- m-sd(x)
+  ymax <- m+sd(x)
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
+
+
+plot_n_eff <- joined %>%
+  ggplot(aes(y = n_eff, x = pred_bin)) +
+  geom_violin(alpha = 0.6, size = 0.7, bw = 0.3, fill = "#80b380", color = "#396039") + 
+  stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
+  theme_cowplot(16) + 
+  theme(plot.title = element_text(hjust = 0, size = 16), 
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.grid.major.y = element_line(color = "grey92", size=0.5),
+        legend.position = "none") +
+  scale_y_continuous(
+    name = "Natural Variation (n-eff)",
+    limits = c(0, 20),
+    breaks = seq(0, 20, by = 2),
+    expand = c(0, 0)) +
+  scale_x_discrete(
+    name = "CNN confidence \n (predicted probability)")
+
+plot_n_eff
+
+
+ggsave(filename = "./analysis/figures/n_eff_vs_pred.png", plot = plot_n_eff, width = 7, height = 5)
+
+#=====================================================================================
+# Consensus frequency as a function of CNN confidence bins
+#=====================================================================================
+
+# set working directory to: "Desktop/Natural_var_project/"
+# loading data
+cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
+natural_data <- read.csv(file = "./data/PSICOV_box_20/output/natural_max_freq_files/natural_max_freq_all.csv", header=TRUE, sep=",")
+
+joined_data <- rbind(x = cnn_data, y = natural_data)
+
+joined_data_trimmed <- joined_data %>%
+  filter(!gene %in% c('1dbx', '1eaz', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc', '2tps'))
+
+wide <- joined_data_trimmed %>%
+  select(-c(aa_class, class_freq)) %>%
+  pivot_wider(names_from = group, values_from = c(freq, aa)) 
+
+
+get_pred_bin <- function(x) {
+  
+  if (x > 0 & x <= 0.2) {
+    return("(0-0.2]")
+  }
+  else if (x > 0.2 & x <= 0.4) {
+    return("(0.2-0.4]")
+  }
+  else if (x > 0.4 & x <= 0.6) {
+    return("(0.4-0.6]")
+  }
+  else if (x > 0.6 & x <= 0.8) {
+    return("(0.6-0.8]")
+  }
+  else if (x > 0.8 & x <= 1.0) {
+    return("(0.8-1.0]")
+  }
+}
+
+
+wide_new <- wide %>%
+  na.omit() %>%
+  mutate(pred_bin = map_chr(freq_predicted, get_pred_bin))
+
+
+conf_data <- wide_new %>%
+  select(c(gene, position, pred_bin, freq_natural_max)) 
+
+data_summary <- function(x) {
+  m <- mean(x)
+  ymin <- m-sd(x)
+  ymax <- m+sd(x)
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
+
+
+plot_cons_freq <- conf_data %>%
+  ggplot(aes(y = freq_natural_max, x = pred_bin)) +
+  geom_violin(alpha = 0.6, size = 0.7, bw = 0.05, fill = "#d2a92d", color = "#8a7228") + 
+  stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
+  theme_cowplot(16) + 
+  theme(plot.title = element_text(hjust = 0, size = 16), 
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.grid.major.y = element_line(color = "grey92", size=0.5),
+        legend.position = "none") +
+  scale_y_continuous(
+    name = "Consensus Frequency",
+    limits = c(0, 1.0),
+    breaks = seq(0, 1.0, by = 0.2),
+    expand = c(0, 0)) +
+  scale_x_discrete(
+    name = "CNN confidence \n (predicted probability)")
+
+plot_cons_freq
+
+
+ggsave(filename = "./analysis/figures/cons_freq_vs_pred.png", plot = plot_cons_freq, width = 7, height = 4)
 
 
 
