@@ -313,7 +313,7 @@ order <- for_barplot_2 %>%
 
 plot_e <- for_barplot_2 %>%
   ggplot(aes(x = freq, y = aa_predicted, fill = class)) +
-  geom_col(alpha = 0.8) +
+  geom_col(alpha = 0.7) +
   facet_wrap(vars(fct_relevel(pred_bin, "Predicted at 80-100% confidence", "Predicted at 0-20% confidence")), ncol = 1) +
   scale_fill_manual(
     values = c("#99004d", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),
@@ -326,7 +326,7 @@ plot_e <- for_barplot_2 %>%
   scale_y_discrete(
     name = "Predicted amino acid",
     expand = c(0.03, 0.03)) + 
-  theme_cowplot(14) +
+  theme_cowplot(16) +
   theme(
     axis.text = element_text(color = "black", size = 14),
     strip.text.x = element_text(size = 16),
@@ -456,7 +456,7 @@ order <- for_barplot_3 %>%
 
 plot_g <- for_barplot_3 %>%
   ggplot(aes(x = freq, y = aa_wt, fill = class)) +
-  geom_col(alpha = 0.8) +
+  geom_col(alpha = 0.7) +
   facet_wrap(vars(fct_relevel(nat_bin, "Natural Frequency of 80-100%", "Natural Frequency of 0-20%")), ncol = 1) +
   scale_fill_manual(
     values = c("#99004d", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),
@@ -469,7 +469,7 @@ plot_g <- for_barplot_3 %>%
   scale_y_discrete(
     name = "Wild type amino acid",
     expand = c(0.03, 0.03)) + 
-  theme_cowplot(14) +
+  theme_cowplot(16) +
   theme(
     axis.text = element_text(color = "black", size = 14),
     strip.text.x = element_text(size = 16),
@@ -483,7 +483,7 @@ ggsave(filename = "./analysis/figures/nat_aa_freq.png", plot = plot_g, width = 1
 
 figure_final <- plot_grid(plot_e, plot_g, nrow = 1, align = "h", labels = c('a', 'b'), rel_widths = c(1, 1.25))
 
-ggsave(filename = paste("./analysis/figures/aa_dist_CNN_conf.png"), plot = figure_final, width = 9.5, height = 8)
+ggsave(filename = paste("./analysis/figures/aa_dist_CNN_conf.png"), plot = figure_final, width = 10.5, height = 9)
 
 
 #=====================================================================================
@@ -648,6 +648,142 @@ plot_cons_freq
 
 ggsave(filename = "./analysis/figures/cons_freq_vs_pred.png", plot = plot_cons_freq, width = 7, height = 4)
 
+#=====================================================================================
+# Frequency of the predicted in MSA as a function of CNN confidence bins (mispredictions only)
+#=====================================================================================
+
+# set working directory to: "Desktop/Natural_var_project/"
+# loading data
+cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
+natural_data <- read.csv(file = "./data/PSICOV_box_20/output/natural_max_freq_files/natural_max_freq_all.csv", header=TRUE, sep=",")
+natural_var <- read.csv(file="./output/output_PSICOV/stats_align_all.csv", header=TRUE, sep=",")
+
+
+joined_data <- rbind(x = cnn_data, y = natural_data)
+
+joined_data_trimmed <- joined_data %>%
+  filter(!gene %in% c('1dbx', '1eaz', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc', '2tps'))
+
+wide <- joined_data_trimmed %>%
+  select(-c(aa_class, class_freq)) %>%
+  pivot_wider(names_from = group, values_from = c(freq, aa)) 
+
+joined_data2 <- inner_join(wide, natural_var)
+
+joined_data_clean <- joined_data2 %>%
+  select(c(gene, position, freq_predicted, aa_predicted, aa_wt, q_A:q_V))
+
+mismatches <- joined_data_clean %>%
+  filter(aa_predicted != aa_wt) %>%
+  select(-aa_wt)
+
+# renaming the natural frequencies
+mismatches2 <- mismatches %>%
+  pivot_longer(cols = c(q_A:q_V), names_to = "nat_aa", values_to = "nat_freq") %>%
+  mutate(nat_aa = substr(nat_aa, 3, 3)) %>%
+  filter(aa_predicted == nat_aa)
+  
+  
+get_pred_bin <- function(x) {
+  
+  if (x > 0 & x <= 0.2) {
+    return("(0-0.2]")
+  }
+  else if (x > 0.2 & x <= 0.4) {
+    return("(0.2-0.4]")
+  }
+  else if (x > 0.4 & x <= 0.6) {
+    return("(0.4-0.6]")
+  }
+  else if (x > 0.6 & x <= 0.8) {
+    return("(0.6-0.8]")
+  }
+  else if (x > 0.8 & x <= 1.0) {
+    return("(0.8-1.0]")
+  }
+}
+
+
+for_plot <- mismatches2 %>%
+  mutate(pred_bin = map_chr(freq_predicted, get_pred_bin)) %>%
+  select(c(gene, position, nat_freq, pred_bin))
+
+
+
+data_summary <- function(x) {
+  m <- mean(x)
+  ymin <- y-(sd(x)/sqrt(length(x)))
+  ymax <- y+(sd(x)/sqrt(length(x)))
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
+
+stat_data <- for_plot %>%
+  select(-c(position, gene)) %>%
+  group_by(pred_bin) %>%
+  summarise(estimate = mean(nat_freq),
+         std_error = sd(nat_freq)/sqrt(length(nat_freq)))
+  
+
+
+plot_nat_conf <- for_plot %>%
+  ggplot(aes(y = nat_freq, x = pred_bin)) +
+  geom_violin(alpha = 0.6, size = 0.4, bw = 0.02, fill = "#d2a92d", color = "#8a7228") + 
+  geom_pointrange(data = stat_data, aes(x = pred_bin,
+                      y = estimate,
+                      ymin = estimate - 1.96*std_error,
+                      ymax = estimate + 1.96*std_error),
+                  color = "black", alpha = 0.7) +
+  #stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
+  theme_cowplot(14) + 
+  theme(plot.title = element_text(hjust = 0, size = 14), 
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.grid.major.y = element_line(color = "grey92", size=0.5),
+        panel.grid.minor.y = element_line(color = "grey92", size=0.5),
+        legend.position = "none")
+  # scale_y_continuous(
+  #   name = "Frequency of mispredicted \n amino acid in natural sequences",
+  #   limits = c(0, 1.0),
+  #   breaks = seq(0, 1.0, by = 0.2),
+  #   expand = c(0, 0)) +
+  # scale_x_discrete(
+  #   name = "CNN confidence \n (predicted probability)")
+
+plot_nat_conf
+
+#using standard_error
+ggsave(filename = "./analysis/figures/std_error.png", plot = plot_nat_conf, width = 8, height = 5)
+
+
+#ggsave(filename = "./analysis/figures/nat_freq_vs_pred.png", plot = plot_nat_conf, width = 8, height = 5)
+
+#now I need a quick boxplot of the number of positions per group:
+
+for_bar <- for_plot %>%
+  group_by(pred_bin) %>%
+  count()
+
+
+bar_plot <- for_bar %>%
+  ggplot(aes(x = factor(pred_bin), y = n)) +
+  geom_col(fill = "#dbc7bd", color = "#cdaa98", alpha = 0.8) +
+  scale_x_discrete(
+    name = "Predicted probability") + 
+  scale_y_continuous(
+    name = "Number of positions per bin",
+    limits = c(0, 3200),
+    breaks = seq(0, 3000, by = 500),
+    expand = c(0, 0)) +
+  theme_cowplot(14)+
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.y = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.y = element_line(color = "grey92", size=0.5)
+  )
+
+bar_plot
+
+ggsave(filename = "./analysis/figures/positions_per_CNN_mispred.png", plot = bar_plot, width = 9, height = 5)
 
 
 
