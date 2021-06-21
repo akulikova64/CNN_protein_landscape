@@ -2,6 +2,7 @@
 library(tidyverse)
 library(cowplot)
 library(broom)
+library(ggforce)
 
 # useful function for getting mean and standard of deviation (for violin plots):
 data_summary <- function(x) {
@@ -178,7 +179,7 @@ not_signif <- joined_final %>%
   select(cor, box_size, gene, dx, dy, x_value, color_y)
 
 #===========================================================================================
-# plot_a (correlations bw neff predicted and neff natural across seq similarity groups)
+# plot_a (correlations bw neff predicted and neff natural across different box sizes)
 #=============================================================================================
 # sig_cor <- sig_cor %>%
 #   group_by(gene) %>%
@@ -287,10 +288,128 @@ results_6
 #p-value = 0.0067 (there is a significant difference)
 
 
+#===========================================================================================
+# correlating n_eff natural vs. predicted for all positions (not by protein)
+#=============================================================================================
+
+natural_var <- read.csv(file = "./output/output_PSICOV/stats_align_files/stats_align_60.csv", header=TRUE, sep=",")
+
+cnn_var_12 <- read.csv(file= paste0("./data/PSICOV_box_12/output/stats_cnn.csv"), header=TRUE, sep=",")
+cnn_var_20 <- read.csv(file= paste0("./data/PSICOV_box_20/output/stats_cnn.csv"), header=TRUE, sep=",")
+cnn_var_30 <- read.csv(file= paste0("./data/PSICOV_box_30/output/stats_cnn.csv"), header=TRUE, sep=",")
+cnn_var_40 <- read.csv(file= paste0("./data/PSICOV_box_40/output/stats_cnn.csv"), header=TRUE, sep=",")
 
 
+natural_var <- natural_var %>%
+  select(position, gene, n_eff, n_eff_class) %>%
+  mutate(group = "natural")
+
+#box_size 12
+cnn_var_12 <- cnn_var_12 %>%
+  select(position, gene, n_eff, n_eff_class) %>%
+  mutate(group = "predicted")
+
+joined_12 <- rbind(natural_var, cnn_var_12) %>%
+  mutate(box_size = "12") 
+
+#box_size 20
+cnn_var_20 <- cnn_var_20 %>%
+  select(position, gene, n_eff, n_eff_class) %>%
+  mutate(group = "predicted")
+
+joined_20 <- rbind(natural_var, cnn_var_20) %>%
+  mutate(box_size = "20") 
+
+#box_size 30
+cnn_var_30 <- cnn_var_30 %>%
+  select(position, gene, n_eff, n_eff_class) %>%
+  mutate(group = "predicted")
+
+joined_30 <- rbind(natural_var, cnn_var_30) %>%
+  mutate(box_size = "30") 
+
+#box_size 40
+cnn_var_40 <- cnn_var_40 %>%
+  select(position, gene, n_eff, n_eff_class) %>%
+  mutate(group = "predicted")
+
+joined_40 <- rbind(natural_var, cnn_var_40) %>%
+  mutate(box_size = "40") 
+
+#joining all the box_sizes
+all_joined <- rbind(joined_12, joined_20, joined_30, joined_40)
+
+all_joined_wide <- all_joined %>%
+  select(-n_eff_class) %>%
+  pivot_wider(names_from = group, values_from = n_eff)
+
+# fitting a linear model to data (getting R^2 and p-values)
+lm_summary <- all_joined_wide %>%
+  na.omit() %>%
+  nest(data = -c(box_size)) %>%
+  mutate(
+    fit = map(data, ~lm(natural ~ predicted, data = .x)),
+    glance_out = map(fit, glance)
+  ) %>%
+  select(box_size, glance_out) %>%
+  unnest(cols = glance_out)
+lm_summary
+
+get_n_eff_bin <- function(x) {
+  
+  if (x > 0.0 & x <= 4.0) {
+    return("(0-4]")
+  }
+  else if (x > 4.0 & x <= 8.0) {
+    return("(4-8]")
+  }
+  else if (x > 8.0 & x <= 12.0) {
+    return("(8-12]")
+  }
+  else if (x > 12.0 & x <= 16.0) {
+    return("(12-16]")
+  }
+  else if (x > 16.0 & x <= 20.0) {
+    return("(16-20]")
+  }
+}
+
+with_bin <- all_joined_wide %>%
+  na.omit() %>%
+  mutate(pred_n_eff_bin = map_chr(predicted, get_n_eff_bin))
+
+stat_data <- with_bin %>%
+  select(-c(position, gene)) %>%
+  group_by(pred_n_eff_bin, box_size) %>%
+  summarise(estimate = mean(natural),
+            std_error = sd(natural)/sqrt(length(natural)))
+  
+
+plot_n_eff <- with_bin %>%
+  ggplot(aes(y = natural, x = fct_relevel(pred_n_eff_bin, "(0-4]", "(4-8]", "(8-12]", "(12-16]", "(16-20]" ))) +
+  geom_sina(alpha = 0.6, size = 0.2, bw = 0.3, fill = "#99a88a", color = "#4d5841") +
+  geom_pointrange(data = stat_data, aes(x = pred_n_eff_bin,
+                                        y = estimate,
+                                        ymin = estimate - 1.96*std_error,
+                                        ymax = estimate + 1.96*std_error),
+                  color = "black", alpha = 0.7, size = 0.4) +
+  #stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
+  facet_wrap(vars(box_size)) +
+  theme_cowplot(16) + 
+  theme(plot.title = element_text(hjust = 0, size = 16), 
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.grid.major.y = element_line(color = "grey92", size=0.5),
+        legend.position = "none") +
+  scale_y_continuous(
+    name = "Natural variation (n-eff)",
+    limits = c(0, 20),
+    breaks = seq(0, 20, by = 2),
+    expand = c(0, 0)) +
+  scale_x_discrete(
+    name = "Predicted variation (n-eff)")
+
+plot_n_eff
 
 
-
-
+ggsave(filename = "./analysis/figures/n_eff_vs_n_eff.png", plot = plot_n_eff, width = 8, height = 5)
 

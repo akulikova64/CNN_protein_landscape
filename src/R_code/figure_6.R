@@ -273,6 +273,49 @@ plot_a
 
 ggsave(filename = paste0("./analysis/figures/figure_6a_box_",box_size,".png"), plot = plot_a, width = 8, height = 4)
 
+#===========================================================================================
+# plot_protein_size (protein size, vs n_eff coefficients )
+#===========================================================================================
+#using reduced/clean lm_summary from above
+filtered <- all_joined_wide %>%
+  filter(perc_sim == "(40-60%]") %>%
+  select(-perc_sim)
+
+with_size <- filtered %>%
+  na.omit() %>%
+  group_by(gene) %>%
+  mutate(protein_size = n()) %>%
+  ungroup()
+
+
+cor <- with_size %>%
+  na.omit() %>%
+  group_by(gene, protein_size) %>%
+  summarise(cor = cor(natural, predicted)) %>%
+  ungroup()
+
+
+plot_protein_size <- cor %>%
+  ggplot(aes(x = cor, y = protein_size))+
+  geom_point(color = "black", size = 1.5) +
+  scale_x_continuous(
+    name = "Correlation coefficient",
+    limits = c(-0.12,0.65),
+    breaks = (seq(from = -0.15, to = 0.65, by = 0.10))) +
+  scale_y_continuous(
+    name = "Protein size \n (number of residues)",
+    limits = c(40, 260),
+    breaks = seq(from = 50, to = 250, by = 50),
+    expand = c(0, 0)) +
+  theme_bw(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 16))
+
+plot_protein_size
+
+
+ggsave(filename = paste0("./analysis/figures/protein_sixe_vs_cor.png"), plot = plot_protein_size, width = 8, height = 4)
+
 #===============================================================================================
 #plot_b (Now making a plot for neff natural CLASSES vs neff predicted CLASSES)
 #===============================================================================================
