@@ -59,18 +59,29 @@ joined_single_and_class <- rbind(stats_1, stats_2)
 custom_fills <- c("#8c7b9d", "#d2a92d")
 custom_colors <- c("#655775", "#8a7228")
 
-data_summary <- function(x) {
-  m <- mean(x)
-  ymin <- m-sd(x)
-  ymax <- m+sd(x)
-  return(c(y=m,ymin=ymin,ymax=ymax))
-}
+# data_summary <- function(x) {
+#   m <- mean(x)
+#   ymin <- m-sd(x)
+#   ymax <- m+sd(x)
+#   return(c(y=m,ymin=ymin,ymax=ymax))
+# }
+
+stat_data_1 <- joined_single_and_class %>%
+  select(-c(gene, x_label)) %>%
+  group_by(group) %>%
+  summarise(estimate = mean(freq_predict_wt),
+            std_error = sd(freq_predict_wt)/sqrt(length(freq_predict_wt)))
 
 plot_20_a <- joined_single_and_class %>%
-  ggplot(aes(y = freq_predict_wt, x = x_label, fill = group, color = group)) +
+  ggplot(aes(y = freq_predict_wt, x = group, fill = group, color = group)) +
   geom_violin(alpha = 0.6, size = 0.7) +
-  stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
+  #stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
   #ggtitle(label = "20A Box: Predicting Wild Type") +
+  geom_pointrange(data = stat_data_1, aes(x = group,
+                                          y = estimate,
+                                          ymin = estimate - 1.96*std_error,
+                                          ymax = estimate + 1.96*std_error),
+                  color = "black", alpha = 0.7, size = 0.3) +
   theme_cowplot(16) + 
   theme(plot.title = element_text(hjust = 0, size=16), 
         plot.subtitle = element_text(hjust = 0.5),
@@ -120,14 +131,24 @@ stats_4 <- match_cons_class %>%
   mutate(group = "predicted class = consensus") %>%
   mutate(x_label = "class \n predictions")
 
-
 joined_consensus <- rbind(stats_3, stats_4)
 
+stat_data_2 <- joined_consensus %>%
+  select(-c(gene, x_label)) %>%
+  group_by(group) %>%
+  summarise(estimate = mean(freq_predict_cons),
+            std_error = sd(freq_predict_cons)/sqrt(1))
+
 plot_20_b <- joined_consensus %>%
-  ggplot(aes(y = freq_predict_cons, x = x_label, fill = group, color = group)) +
+  ggplot(aes(y = freq_predict_cons, x = group, fill = group, color = group)) +
   geom_violin(alpha = 0.6, size = 0.7) + 
-  stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
+  #stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
   #ggtitle(label = "20A Box: Predicting Consensus") +
+  geom_pointrange(data = stat_data_2, aes(x = group,
+                                          y = estimate,
+                                          ymin = estimate - std_error,
+                                          ymax = estimate + std_error),
+                  color = "black", alpha = 0.7, size = 0.3) +
   theme_cowplot(16) + 
   theme(plot.title = element_text(hjust = 0, size = 16), 
         plot.subtitle = element_text(hjust = 0.5),

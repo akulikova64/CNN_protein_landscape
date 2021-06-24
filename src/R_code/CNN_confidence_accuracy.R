@@ -129,7 +129,7 @@ plot_b <- for_plot_b %>%
 
 plot_b
 
-acc_vs_conf <- plot_grid(plot_a, plot_b, nrow = 2, align = "h", labels = c('a', 'b'))
+acc_vs_conf <- plot_grid(plot_b, plot_a, nrow = 2, align = "h", labels = c('a', 'b'))
 ggsave(filename = paste0("./analysis/figures/acc_vs_conf.png"), plot = acc_vs_conf, width = 8, height = 8)
 
 
@@ -421,8 +421,7 @@ plot_train <- freqs %>%
     strip.text.x = element_text(size = 16),
     panel.grid.major.x = element_line(color = "grey92", size=0.5),
     panel.grid.minor.x = element_line(color = "grey92", size=0.5),
-    panel.spacing = unit(2, "lines"),
-    legend.position = "none")
+    panel.spacing = unit(2, "lines"))
 
 plot_train
 
@@ -430,7 +429,7 @@ ggsave(filename = "./analysis/figures/train_aa_freq.png", plot = plot_train, wid
 
 
 #===============================================================================================
-#  natural amino acid distributions within their MSA frequency bins
+#  wild type amino acid distributions within their MSA frequency bins
 #===============================================================================================
 
 calc_class <- function(x) {
@@ -562,20 +561,153 @@ plot_g <- for_barplot_3 %>%
     strip.text.x = element_text(size = 16),
     panel.grid.major.x = element_line(color = "grey92", size=0.5),
     panel.grid.minor.x = element_line(color = "grey92", size=0.5),
-    panel.spacing = unit(2, "lines"))
+    panel.spacing = unit(2, "lines"),
+    legend.position = "none")
 
 plot_g
 
 ggsave(filename = "./analysis/figures/nat_aa_freq.png", plot = plot_g, width = 11, height = 8)
 
-figure_final <- plot_grid(plot_e, plot_train, plot_g, nrow = 1, align = "h", labels = c('a', 'b', 'c'), rel_widths = c(1, 1, 1.5))
+figure_final <- plot_grid(plot_e, plot_g, plot_train, nrow = 1, align = "h", labels = c('a', 'b', 'c'), rel_widths = c(1, 1, 1.5))
 
 ggsave(filename = paste("./analysis/figures/aa_dist_CNN_conf.png"), plot = figure_final, width = 11, height = 9)
 
+#===============================================================================================
+#  consensus amino acid distributions within their MSA frequency bins (normalized by natural abundance)
+#===============================================================================================
+
+calc_class <- function(x) {
+  aliphatic = c("M", "L", "I", "V", "A")
+  small_polar = c("C", "S", "T", "N", "Q")
+  negative = c("D", "E")
+  positive = c("R", "K")
+  aromatic = c("H", "Y", "W", "F")
+  unique = c("P", "G")
+  
+  if (x %in% aliphatic) {
+    return("aliphatic")
+  }
+  if (x %in% small_polar) {
+    return("small_polar")
+  }
+  if (x %in% negative) {
+    return("negative")
+  }
+  if (x %in% positive) {
+    return("positive")
+  }
+  if (x %in% aromatic) {
+    return("aromatic")
+  }
+  if (x %in% unique) {
+    return("unique")
+  }
+  return("not found")
+}
+
+get_pred_bin <- function(x) {
+  
+  if (x > 0.80 & x <= 1.0) {
+    return("Natural Frequency of 80-100%")
+  }
+  else{
+    return(NA)
+  }
+}
+
+# set working directory to: "Desktop/Natural_var_project/"
+# loading data
+cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
+natural_data <- read.csv(file = "./data/PSICOV_box_20/output/natural_max_freq_files/natural_max_freq_all.csv", header=TRUE, sep=",")
+
+joined_data <- rbind(x = cnn_data, y = natural_data)
+
+joined_data_trimmed <- joined_data %>%
+  filter(!gene %in% c('1dbx', '1eaz', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc', '2tps'))
+
+wide <- joined_data_trimmed %>%
+  select(-c(aa_class, class_freq)) %>%
+  pivot_wider(names_from = group, values_from = c(freq, aa)) 
+
+wide_new <- wide %>%
+  na.omit() %>%
+  mutate(nat_bin = map_chr(freq_natural_max, get_pred_bin)) %>%
+  na.omit()
+
+new_data <- wide_new %>%
+  select(aa_natural_max)
+
+# finds the count of each aa acid per bin:
+aa_counts <- new_data %>%
+  count(aa_natural_max) %>%
+  mutate(aa_count = n) %>%
+  select(-n) %>%
+  ungroup()
+
+# getting aa fractions in the MSA sequences (# alanines/ # total sites)
+natural_abundance <- read.csv(file = "./output/output_PSICOV/natural_abundance.csv", header=TRUE, sep=",")
+
+natural_abundance <- natural_abundance %>%
+  rename(aa_natural_max = aa) # renaming to incorrect name to join later on.
+  
+
+# normalizing the aa count per bin: 
+# multiplying the aa count per bin by the total fraction of that amino acid in the wt structures:
+aa_counts_norm <- aa_counts %>%
+  left_join(natural_abundance) %>%
+  mutate(norm_count = aa_count/count) %>%
+  select(-c(aa_count, count))
+
+# now I need to add up all aa within each (normaized!!!) bin to get bin totals and append this to the aa_counts
+for_barplot <- aa_counts_norm %>%
+  mutate(total_count = sum(norm_count)) %>%
+  ungroup()
+
+# adding the class labels
+with_classes <- for_barplot %>%
+  mutate(class = map_chr(aa_natural_max, calc_class))
+
+for_barplot_4 <- with_classes %>%
+  mutate(freq = norm_count/total_count) %>%
+  select(-c(norm_count, total_count)) %>%
+  mutate(aa_natural_max = fct_rev(fct_relevel(aa_natural_max, "G", "L", "P", "I", "W", "F", "C", "V", "D", "A", "M", "T", "S", "Y", "E", "N", "R", "H", "K", "Q"))) %>%
+  mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
+
+plot_h <- for_barplot_4 %>%
+  ggplot(aes(x = freq, y = aa_natural_max, fill = class)) +
+  geom_col(alpha = 0.75) +
+  scale_fill_manual(
+    values = fills,
+    labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
+  scale_x_continuous(
+    name = "Frequency",
+    limits = c(0.0, 0.165),
+    breaks = seq(0.0, 0.16, by = 0.04),
+    expand = c(0, 0)) + 
+  scale_y_discrete(
+    name = "Natural amino acid",
+    expand = c(0.03, 0.03)) + 
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"),
+    legend.position = "none")
+
+plot_h
+
+ggsave(filename = "./analysis/figures/cons_aa_dist.png", plot = plot_h, width = 11, height = 8)
+
+figure_final <- plot_grid(plot_e, plot_h, plot_train, nrow = 1, align = "h", labels = c('a', 'b', 'c'), rel_widths = c(1, 1, 1.5))
+
+ggsave(filename = paste("./analysis/figures/aa_dist_CNN_conf_natural.png"), plot = figure_final, width = 11, height = 9)
 
 #=====================================================================================
 # Natural N-eff distribution as a function of CNN confidence bins
 #=====================================================================================
+
 
 # set working directory to: "Desktop/Natural_var_project/"
 # loading data
@@ -928,7 +1060,7 @@ stat_data <- for_plot %>%
 
 plot_nat_conf <- for_plot %>%
   ggplot(aes(y = nat_freq, x = pred_bin)) +
-  geom_violin(alpha = 0.6, size = 0.4, bw = 0.02, fill = "#c78a8a", color = "#7a5252") + 
+  geom_violin(alpha = 0.6, size = 0.4, bw = 0.02, fill = "#99a88a", color = "#4d5841") + 
   geom_pointrange(data = stat_data, aes(x = pred_bin,
                       y = estimate,
                       ymin = estimate - 1.96*std_error,
@@ -994,10 +1126,43 @@ cor<- mismatches2 %>%
 
 # fitting a linear model to data (getting R^2 and p-values)
 lm_summary <- lm(mismatches2$nat_freq ~ mismatches2$freq_predicted)
-lm_summary
+summary(lm_summary)
 
 
-    
-    
-    
+#=======================================================================================
+# Performing a paired t-test for mispredictions (between confidence bins)
+#=======================================================================================
+
+
+for_t_test <- for_plot %>%
+  select(-c(gene, position)) %>%
+  group_by(pred_bin) %>%
+  mutate(row = row_number()) %>%
+  ungroup() %>%
+  pivot_wider(names_from = pred_bin, values_from = nat_freq) %>%
+  select(-row)
+
+
+
+results_1 <- t.test(for_t_test$`(0-0.2]`, for_t_test$`(0.2-0.4]`, paired = FALSE, alternative = "two.sided")
+results_1
+#p-value = 4.421e-06 (there is a significant difference)
+
+results_2 <- t.test(for_t_test$`(0.2-0.4]`, for_t_test$`(0.4-0.6]`, paired = FALSE, alternative = "two.sided")
+results_2
+#p-value = 3.286e-12 (there is a significant difference)
+
+results_3 <- t.test(for_t_test$`(0.4-0.6]`, for_t_test$`(0.6-0.8]`, paired = FALSE, alternative = "two.sided")
+results_3
+#p-value = 1.228e-05 (there is a significant difference)
+
+results_4 <- t.test(for_t_test$`(0.6-0.8]`, for_t_test$`(0.8-1.0]`, paired = FALSE, alternative = "two.sided")
+results_4
+#p-value = 0.01287 (there is a significant difference)
+
+results_5 <- t.test(for_t_test$`(0-0.2]`, for_t_test$`(0.8-1.0]`, paired = FALSE, alternative = "two.sided")
+results_5
+#p-value = p-value < 2.2e-16 (there is a significant difference)
+
+
     

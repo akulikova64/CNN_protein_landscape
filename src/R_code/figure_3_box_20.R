@@ -116,8 +116,11 @@ twoD_legend <- tibble(class = c(rep("aliphatic", times = 5),
                                 rep("unique", times = 5)), 
                       freq = c(rep(alphas, times = 6)))
 
+twoD_legend <- twoD_legend %>%
+  mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
+
 legend <- twoD_legend %>%
-  ggplot(aes(x = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"), y = factor(freq), fill = class, alpha = factor(freq))) +
+  ggplot(aes(x = class, y = factor(freq), fill = class, alpha = factor(freq))) +
   geom_tile() +
   scale_fill_manual(
     values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),

@@ -93,10 +93,21 @@ data_summary <- function(x) {
   return(c(y=m,ymin=ymin,ymax=ymax))
 }
 
+stat_data_1 <- stats_1 %>%
+  select(-c(gene, x_label)) %>%
+  group_by(box_size, group) %>%
+  summarise(estimate = mean(freq_predict_wt),
+            std_error = sd(freq_predict_wt)/sqrt(length(freq_predict_wt)))
+
 plot_a <- stats_1 %>%
   ggplot(aes(y = freq_predict_wt, x = box_size)) +
   geom_violin(alpha = 0.5, size = 0.7, fill = custom_fill_1, color = custom_color_1 ) +
-  stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
+  #stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
+  geom_pointrange(data = stat_data_1, aes(x = box_size,
+                                          y = estimate,
+                                          ymin = estimate - std_error,
+                                          ymax = estimate + std_error),
+                  color = "black", alpha = 0.7, size = 0.3) +
   theme_cowplot(12) + 
   theme(plot.title = element_text(hjust = 0, size=12), 
         plot.subtitle = element_text(hjust = 0.5),
@@ -141,17 +152,29 @@ joined_single_and_class <- rbind(stats_1, stats_2)
 custom_fills <- c("#8c7b9d", "#d2a92d")
 custom_colors <- c("#655775", "#8a7228")
 
+stat_data_2 <- joined_single_and_class %>%
+  select(-c(gene, x_label)) %>%
+  group_by(box_size, group) %>%
+  summarise(estimate = mean(freq_predict_wt),
+            std_error = sd(freq_predict_wt)/sqrt(length(freq_predict_wt)))
+
 plot_c <- joined_single_and_class %>%
   ggplot(aes(y = freq_predict_wt, x = box_size, fill = group, color = group)) +
   geom_violin(
     alpha = 0.5, 
     size = 0.7,
     position=position_dodge(width = 0.6)) +
-  stat_summary(
-    fun.data=data_summary, 
-    color = "black", 
-    alpha = 0.7,
-    position=position_dodge(width = 0.6)) +
+  # stat_summary(
+  #   fun.data=data_summary, 
+  #   color = "black", 
+  #   alpha = 0.7,
+  #   position=position_dodge(width = 0.6)) +
+  geom_pointrange(data = stat_data_2, aes(x = box_size,
+                                          y = estimate,
+                                          ymin = estimate - std_error,
+                                          ymax = estimate + std_error),
+                  color = "black", alpha = 0.7, size = 0.3,
+                  position=position_dodge(width = 0.6)) +
   theme_cowplot(12) + 
   theme(plot.title = element_text(hjust = 0, size=12), 
         plot.subtitle = element_text(hjust = 0.5),
@@ -200,17 +223,29 @@ stats_4 <- match_cons_class %>%
 
 joined_consensus <- rbind(stats_3, stats_4)
 
+stat_data_3 <- joined_consensus %>%
+  select(-c(gene, x_label)) %>%
+  group_by(box_size, group) %>%
+  summarise(estimate = mean(freq_predict_cons),
+            std_error = sd(freq_predict_cons)/sqrt(length(freq_predict_cons)))
+
 plot_d <- joined_consensus %>%
   ggplot(aes(y = freq_predict_cons, x = box_size, fill = group, color = group)) +
   geom_violin(
     alpha = 0.5, 
     size = 0.7,
     position=position_dodge(width = 0.6)) +
-  stat_summary(
-    fun.data=data_summary, 
-    color = "black", 
-    alpha = 0.7,
-    position=position_dodge(width = 0.6)) +
+  # stat_summary(
+  #   fun.data=data_summary, 
+  #   color = "black", 
+  #   alpha = 0.7,
+  #   position=position_dodge(width = 0.6)) +
+  geom_pointrange(data = stat_data_3, aes(x = box_size,
+                                          y = estimate,
+                                          ymin = estimate - std_error,
+                                          ymax = estimate + std_error),
+                  color = "black", alpha = 0.7, size = 0.3,
+                  position=position_dodge(width = 0.6)) +
   theme_cowplot(12) + 
   theme(plot.title = element_text(hjust = 0, size = 12), 
         plot.subtitle = element_text(hjust = 0.5),

@@ -76,20 +76,29 @@ match_consensus <- all_data_wider %>%
 stats_for_plot <- match_consensus %>%
   group_by(gene, perc_sim) %>%
   summarise(freq_predict_cons = sum(match_predict_cons, na.rm = TRUE)/sum(!is.na(match_predict_cons)),
-            freq_wt_cons = sum(match_wt_cons, na.rm = TRUE)/sum(!is.na(match_wt_cons)))
+            freq_wt_cons = sum(match_wt_cons, na.rm = TRUE)/sum(!is.na(match_wt_cons))) %>%
+  ungroup()
 
 stats_for_plot2 <- stats_for_plot %>%
-  pivot_longer(c(freq_predict_cons, freq_wt_cons), values_to = "freq", names_to = "condition")
+  pivot_longer(c(freq_predict_cons, freq_wt_cons), values_to = "freq", names_to = "condition") %>%
+  na.omit()
 
 custom_fills <- c("#8c7b9d", "#d2a92d")
 custom_colors <- c("#655775", "#8a7228")
 
-data_summary <- function(x) {
-  m <- mean(x)
-  ymin <- m-sd(x)
-  ymax <- m+sd(x)
-  return(c(y=m,ymin=ymin,ymax=ymax))
-}
+# data_summary <- function(x) {
+#   m <- mean(x)
+#   ymin <- m-sd(x)
+#   ymax <- m+sd(x)
+#   return(c(y=m,ymin=ymin,ymax=ymax))
+# }
+
+stat_data_1 <- stats_for_plot2 %>%
+  select(-gene) %>%
+  filter(condition == "freq_predict_cons") %>%
+  group_by(perc_sim, condition) %>%
+  summarise(estimate = mean(freq),
+            std_error = sd(freq)/sqrt(length(freq)))
 
 # plot 5
 figure_5a <- stats_for_plot2 %>%
@@ -98,7 +107,12 @@ figure_5a <- stats_for_plot2 %>%
   geom_violin(fill = "#8c7b9d", color = "#655775", alpha = 0.5) + 
   geom_hline(yintercept = pred_wt_aa, linetype = "dashed", color = "#8a0f0f", alpha = 0.8, size = 0.85) +
   #geom_sina(size = 0.2) +
-  stat_summary(fun.data=data_summary) +
+  #stat_summary(fun.data=data_summary) +
+  geom_pointrange(data = stat_data_1, aes(x = perc_sim,
+                                          y = estimate,
+                                          ymin = estimate - std_error,
+                                          ymax = estimate + std_error),
+                  color = "black", alpha = 0.7, size = 0.3) +
   theme_cowplot(16) + 
   theme(plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5),
@@ -134,6 +148,18 @@ stats_for_class_plot <- class_match %>%
 stats_for_class_plot2 <- stats_for_class_plot %>%
   pivot_longer(c(freq_predict_cons, freq_wt_cons), values_to = "freq", names_to = "condition")
 
+
+stat_data_2 <- stats_for_class_plot2 %>%
+  ungroup() %>%
+  na.omit() %>%
+  select(-gene) %>%
+  filter(condition == "freq_predict_cons") %>%
+  select(-condition) %>%
+  group_by(perc_sim) %>%
+  summarise(estimate = mean(freq),
+            std_error = sd(freq)/sqrt(length(freq)))
+
+
 # plot 5b
 figure_5b <- stats_for_class_plot2 %>%
   filter(condition == "freq_predict_cons") %>%
@@ -141,7 +167,12 @@ figure_5b <- stats_for_class_plot2 %>%
   geom_violin(fill = "#d2a92d", color = "#8a7228", alpha = 0.5) + 
   geom_hline(yintercept = pred_wt_class, linetype = "dashed", color = "#8a0f0f", alpha = 0.8, size = 0.85) +
   #geom_sina(size = 0.2) +
-  stat_summary(fun.data=data_summary) +
+  #stat_summary(fun.data=data_summary) +
+  geom_pointrange(data = stat_data_2, aes(x = perc_sim,
+                                          y = estimate,
+                                          ymin = estimate - std_error,
+                                          ymax = estimate + std_error),
+                  color = "black", alpha = 0.7, size = 0.3) +
   theme_cowplot(16) + 
   theme(plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5),
