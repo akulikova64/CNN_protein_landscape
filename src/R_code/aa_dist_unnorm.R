@@ -254,16 +254,16 @@ wide <- joined_data_trimmed %>%
 
 wide_new <- wide %>%
   na.omit() %>%
-  mutate(nat_bin = map_chr(freq_natural_wt, get_pred_bin)) %>%
+  mutate(nat_bin = map_chr(freq_natural_max, get_pred_bin)) %>%
   na.omit()
 
 new_data <- wide_new %>%
-  select(c(aa_wt, nat_bin))
+  select(c(aa_natural_max, nat_bin))
 
 # finds the count of each aa acid per bin:
 aa_counts <- new_data %>%
   group_by(nat_bin) %>%
-  count(aa_wt) %>%
+  count(aa_natural_max) %>%
   mutate(aa_count = n) %>%
   select(-n) %>%
   ungroup()
@@ -277,12 +277,12 @@ for_barplot <- aa_counts %>%
 
 # adding the class labels
 with_classes <- for_barplot %>%
-  mutate(class = map_chr(aa_wt, calc_class))
+  mutate(class = map_chr(aa_natural_max, calc_class))
 
 for_barplot_3 <- with_classes %>%
   mutate(freq = aa_count/bin_count) %>%
   select(-c(aa_count, bin_count)) %>%
-  mutate(aa_wt = fct_rev(fct_relevel(aa_wt, "G", "L", "I", "V", "A", "P", "D", "F", "E", "T", "S", "R", "W", "C", "N", "Y", "K", "M", "H", "Q"))) %>%
+  mutate(aa_natural_max = fct_rev(fct_relevel(aa_natural_max, "G", "L", "I", "V", "A", "P", "D", "F", "E", "T", "S", "R", "W", "C", "N", "Y", "K", "M", "H", "Q"))) %>%
   mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
 
 
@@ -291,7 +291,7 @@ order <- for_barplot_3 %>%
   filter(nat_bin == "Natural Frequency of 80-100%")
 
 plot_g <- for_barplot_3 %>%
-  ggplot(aes(x = freq, y = aa_wt, fill = class)) +
+  ggplot(aes(x = freq, y = aa_natural_max, fill = class)) +
   geom_col(alpha = 0.75) +
   #facet_wrap(vars(fct_relevel(nat_bin, "Natural Frequency of 80-100%", "Natural Frequency of 0-20%")), ncol = 1) +
   scale_fill_manual(
@@ -303,7 +303,7 @@ plot_g <- for_barplot_3 %>%
     breaks = seq(0.0, 0.20, by = 0.05),
     expand = c(0, 0)) + 
   scale_y_discrete(
-    name = "Wild type amino acid",
+    name = "Natural amino acid",
     expand = c(0.03, 0.03)) + 
   theme_cowplot(16) +
   theme(
@@ -319,4 +319,53 @@ plot_g
 figure_final <- plot_grid(plot_e, plot_g, plot_train, nrow = 1, align = "h", labels = c('a', 'b', 'c'), rel_widths = c(1, 1, 1.5))
 
 ggsave(filename = paste("./analysis/figures/aa_dist_unnorm.png"), plot = figure_final, width = 11, height = 9)
+
+#===============================================================================================
+#  ODDS RATIO amino acid distributions within their MSA frequency bins
+#===============================================================================================
+
+#data from the natural amino acid distributions:
+pred_data <- for_barplot_2 %>%
+  select(c(aa_predicted, class, freq)) %>%
+  rename(freq_pred = freq,
+         aa = aa_predicted)
+
+nat_data <- for_barplot_3 %>%
+  select(c(aa_natural_max, freq)) %>%
+  rename(aa = aa_natural_max,
+         freq_nat = freq)
+
+for_odds <- inner_join(pred_data, nat_data)
+
+for_odds_2 <- for_odds %>%
+  mutate(ratio = freq_pred/freq_nat) %>%
+  mutate(aa = fct_rev(fct_relevel(aa, "I", "V", "L", "F", "A", "P", "G", "D", "T", "S", "E", "W", "M", "N", "Y", "R", "C", "K", "Q", "H"))) %>%
+  mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
+
+plot_odds <- for_odds_2 %>%
+  ggplot(aes(x = ratio, y = aa, fill = class)) +
+  geom_col(alpha = 0.75) +
+  scale_fill_manual(
+    values = fills,
+    labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
+  scale_x_continuous(
+    name = "Predicted frequency over \n natural frequency",
+    limits = c(0, 3.75),
+    breaks = seq(0, 4, by = 0.5),
+    expand = c(0, 0)) + 
+  scale_y_discrete(
+    name = "Amino acid",
+    expand = c(0.03, 0.03)) + 
+  geom_hline(yintercept = 13.5, linetype = "dashed", color = "grey20", alpha = 0.8, size = 0.85) +
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"))
+
+plot_odds
+
+ggsave(filename = paste("./analysis/figures/aa_dist_odds.png"), plot = plot_odds, width = 6.5, height = 9)
 
