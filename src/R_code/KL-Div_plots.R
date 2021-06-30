@@ -62,18 +62,17 @@ natural_var <- read.csv(file="./output/output_PSICOV/stats_align_all.csv", heade
 
 cnn_var2 <- cnn_var %>%
   nest(q_cnn = q_A:q_V) %>%
-  select(-c(q_aliphatic:n_eff_class, entropy, n_eff)) 
+  select(-c(q_aliphatic:n_eff_class, entropy, n_eff))
 
 natural_var2 <- natural_var %>%
   nest(q_nat = q_A:q_V) %>%
-  select(-c(q_aliphatic:n_eff_class, entropy, n_eff))
+  select(-c(q_aliphatic:n_eff_class, entropy, n_eff)) 
 
 joined_data <- inner_join(cnn_var2, natural_var2)
 
 joined_data_trimmed <- joined_data %>%
   filter(!gene %in% c('1dbx', '1eaz', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc', '2tps'))
 
-# fix the code below
 with_d_kl <- joined_data_trimmed %>%
   rowwise() %>%
   mutate(D_KL = get_D_KL(as.numeric(q_nat), as.numeric(q_cnn))) %>%
@@ -293,4 +292,260 @@ figure_final <- plot_grid(plot_a, plot_b, nrow = 1, align = "h", labels = c('a',
 
 ggsave(filename = paste("./analysis/figures/figure_KL_div_",threshold,".png"), plot = figure_final, width = 10.5, height = 9)
 
+#========================================================================================================================
+# finding proteins and positions where both natural and prediced n-eff is greater than 1.5 and divergence is less than 1.
+#========================================================================================================================
+
+# function receives two distributions x and y
+get_D_KL_2 <- function(y, x) {
+  sum(ifelse(x == 0 | y == 0, 0, x*log(x/y)))
+}
+
+# function receives two distributions y (natural) and x (predicted)
+get_D_KL <- function(y, x) {
+  sum <- 0
+  for (i in 1:20) { 
+    y[i] = y[i] + 1e-20 # the KL-div statistic can't be calculated when y is zero
+    x[i] = x[i] + 1e-20
+    if (x[i] != 0 & y[i] != 0) {
+      sum = sum + x[i] * log(x[i]/y[i])
+    }
+    if (x[i] != 0 & y[i] == 0) {
+      sum = sum + x[i] * log(x[i]/y[i])
+    }
+  }
+  return(sum)
+}
+
+calc_class <- function(x) {
+  aliphatic = c("M", "L", "I", "V", "A")
+  small_polar = c("C", "S", "T", "N", "Q")
+  negative = c("D", "E")
+  positive = c("R", "K")
+  aromatic = c("H", "Y", "W", "F")
+  unique = c("P", "G")
   
+  if (x %in% aliphatic) {
+    return("aliphatic")
+  }
+  if (x %in% small_polar) {
+    return("small_polar")
+  }
+  if (x %in% negative) {
+    return("negative")
+  }
+  if (x %in% positive) {
+    return("positive")
+  }
+  if (x %in% aromatic) {
+    return("aromatic")
+  }
+  if (x %in% unique) {
+    return("unique")
+  }
+  return("not found")
+}
+
+cnn_var <- read.csv(file = paste0("./data/PSICOV_box_20/output/stats_cnn.csv"), header=TRUE, sep=",")
+natural_var <- read.csv(file="./output/output_PSICOV/stats_align_all.csv", header=TRUE, sep=",")
+
+cnn_var2 <- cnn_var %>%
+  nest(q_cnn = q_A:q_V) %>%
+  select(-c(q_aliphatic:n_eff_class, entropy)) %>%
+  rename(n_eff_cnn = n_eff)
+
+natural_var2 <- natural_var %>%
+  nest(q_nat = q_A:q_V) %>%
+  select(-c(q_aliphatic:n_eff_class, entropy)) %>%
+  rename(n_eff_nat = n_eff)
+
+joined_data <- inner_join(cnn_var2, natural_var2)
+
+joined_data_trimmed <- joined_data %>%
+  filter(!gene %in% c('1dbx', '1eaz', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc', '2tps'))
+
+with_d_kl <- joined_data_trimmed %>%
+  rowwise() %>%
+  mutate(D_KL = get_D_KL(as.numeric(q_nat), as.numeric(q_cnn))) %>%
+  select(-c(q_nat, q_cnn))
+
+filtered <- with_d_kl %>%
+  filter(n_eff_cnn != 1.0 & n_eff_nat != 1.0)
+
+labeled <- filtered %>%
+  mutate(pred_vs_nat = ifelse(n_eff_cnn > n_eff_nat, "pred>nat", "pred<nat"))
+
+#Now lets also add the predicted amino acid to this dataframe. 
+
+cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
+
+predicted <- cnn_data %>%
+  select(c(gene, group, position, aa)) %>%
+  pivot_wider(names_from = group, values_from = aa) 
+
+final <- inner_join(labeled, predicted) %>%
+  select(-wt_aa) %>%
+  mutate(KL_group = ifelse(D_KL < 1, "low_KL", "high_KL"))
+
+summary <- final %>%
+  #filter(KL_group == "low_KL") %>%
+  group_by(pred_vs_nat, KL_group) %>%
+  summarise(count = n())
+summary
+
+#========================================================================================================================
+# comparing n-eff distributions (between n_eff_cnn and n_eff_nat)
+#========================================================================================================================
+get_neff_group <- function(x, y) { #x is pred, y is nat
+  if (round((x - y), 1) == 0 & round(y, 1) != 1) {
+    return("pred=nat \n nat not 1")
+  }
+  if (round((x - y), 1) == 0 & round(y, 1) == 1) {
+    return("pred=nat \n nat = 1")
+  }
+  if (x > y) {
+    return("pred>nat")
+  }
+  if (x < y) {
+    return("pred<nat")
+  }
+}
+
+
+calc_class <- function(x) {
+  aliphatic = c("M", "L", "I", "V", "A")
+  small_polar = c("C", "S", "T", "N", "Q")
+  negative = c("D", "E")
+  positive = c("R", "K")
+  aromatic = c("H", "Y", "W", "F")
+  unique = c("P", "G")
+  
+  if (x %in% aliphatic) {
+    return("aliphatic")
+  }
+  if (x %in% small_polar) {
+    return("small_polar")
+  }
+  if (x %in% negative) {
+    return("negative")
+  }
+  if (x %in% positive) {
+    return("positive")
+  }
+  if (x %in% aromatic) {
+    return("aromatic")
+  }
+  if (x %in% unique) {
+    return("unique")
+  }
+  return("not found")
+}
+
+cnn_var <- read.csv(file = paste0("./data/PSICOV_box_20/output/stats_cnn.csv"), header=TRUE, sep=",")
+natural_var <- read.csv(file="./output/output_PSICOV/stats_align_all.csv", header=TRUE, sep=",")
+
+cnn_var2 <- cnn_var %>%
+  select(-c(q_A:q_V)) %>%
+  select(-c(q_aliphatic:n_eff_class, entropy)) %>%
+  rename(n_eff_cnn = n_eff)
+
+natural_var2 <- natural_var %>%
+  select(-c(q_A:q_V)) %>%
+  select(-c(q_aliphatic:n_eff_class, entropy)) %>%
+  rename(n_eff_nat = n_eff)
+
+joined_data <- inner_join(cnn_var2, natural_var2)
+
+joined_data_trimmed <- joined_data %>%
+  filter(!gene %in% c('1dbx', '1eaz', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc', '2tps'))
+
+
+#Now lets also add the predicted amino acid to this dataframe. 
+
+cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
+
+predicted <- cnn_data %>%
+  select(c(gene, group, position, aa)) %>%
+  pivot_wider(names_from = group, values_from = aa) 
+
+final <- inner_join(joined_data_trimmed, predicted) %>%
+  select(-wt_aa) %>%
+  mutate(diff = round((n_eff_cnn - n_eff_nat), 3))
+
+final_2 <- final %>%
+  rowwise() %>%
+  mutate(n_eff_group = get_neff_group(as.numeric(n_eff_cnn), as.numeric(n_eff_nat))) %>%
+  mutate(facet_group = ifelse(n_eff_group == "pred=nat \n nat not 1" | n_eff_group == "pred=nat \n nat = 1", "pred = nat", "pred ≠ nat"))
+
+counts <- final_2 %>%
+  group_by(n_eff_group) %>%
+  summarise(count = n()) %>%
+  ungroup() %>%
+  mutate(sum = sum(count)) %>%
+  mutate(freq = count/sum) %>%
+  select(c(n_eff_group, freq)) %>%
+  mutate(facet_group = ifelse(n_eff_group == "pred=nat \n nat not 1" | n_eff_group == "pred=nat \n nat = 1", "pred = nat", "pred ≠ nat"))
+
+
+summary <- final_2 %>%
+  group_by(n_eff_group) %>%
+  summarise(count = n())
+summary
+
+plot_a <- counts %>%
+  filter(n_eff_group == "pred<nat" | n_eff_group == "pred>nat") %>%
+  ggplot(aes(x=n_eff_group, y = freq)) +
+  geom_col() 
+plot_a
+
+plot_b <- counts %>%
+  filter(n_eff_group == "pred=nat \n nat = 1" | n_eff_group == "pred=nat \n nat not 1") %>%
+  ggplot(aes(x=n_eff_group, y = freq)) +
+  geom_col() 
+plot_b
+
+plot_c <- final_2 %>%
+  ggplot(aes(x = fct_relevel(n_eff_group,"pred<nat", "pred>nat", "pred=nat \n nat = 1", "pred=nat \n nat not 1"))) +
+  geom_bar(aes(y = ..prop.., group = 1), fill = "#988981", color = "#70635c", alpha = 0.8) +
+  scale_x_discrete(
+    name = "Variation group (n-eff)",
+    labels = c("predicted < natural",
+               "predicted > natural",
+               "predicted = natural \n (n-eff = 1)",
+               "predicted = natural \n (n-eff ≠ 1)")) + 
+  scale_y_continuous(
+    name = "Proportion",
+    limits = c(0, 0.8),
+    breaks = seq(0, 0.8, by = 0.1),
+    expand = c(0, 0)) +
+  theme_cowplot(14)+
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.y = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.y = element_line(color = "grey92", size=0.5)
+  )
+plot_c
+
+ggsave(filename = paste("./analysis/figures/n_eff_bins.png"), plot = plot_c, width = 8.5, height = 7)
+
+
+#===============================================================================
+# Next, we want to add in KL-divergence (make violin plots)
+#===============================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
