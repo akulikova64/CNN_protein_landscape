@@ -608,8 +608,8 @@ get_div_group <- function(n_eff_cnn, n_eff_nat, KL_div) {
   if (round(n_eff_cnn, 1) > 1.5 & round(n_eff_nat, 1) > 1.5 & round(KL_div, 1) < 0.5) {
     return("n-eff > 1.5 \n KL-Div < 0.5")
   }
-  if (round(KL_div, 1) > 3) {
-    return("KL-Div > 3")
+  if (round(KL_div, 1) > 5) {
+    return("KL-Div > 5")
   }
   return(NA)
 }
@@ -643,7 +643,7 @@ aa <- c('A', 'R', 'N',  'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', '
 
 all_aa <- tibble(wt = rep(aa, times = 3), 
                  count = rep(0, times = 60),
-                 div_group = c(rep("KL-Div > 3", times = 20), rep("n-eff = 1 \n KL-Div ~ 0", times = 20), rep("n-eff > 1.5 \n KL-Div < 0.5", 20)))
+                 div_group = c(rep("KL-Div > 5", times = 20), rep("n-eff = 1 \n KL-Div ~ 0", times = 20), rep("n-eff > 1.5 \n KL-Div < 0.5", 20)))
 
 with_missing_aa <- aa_counts %>%
   right_join(all_aa) %>%
@@ -676,7 +676,7 @@ fills <- c("#990008", "#0a2575", "#b35900", "#1a6600", "#5c0679", "#9e9e2e")
 aa_dist_plot <- for_barplot_2 %>%
   ggplot(aes(x = freq, y = wt, fill = class)) +
   geom_col(alpha = 0.75) +
-  facet_wrap(vars(fct_relevel(div_group, "n-eff > 1.5 \n KL-Div < 0.5", "KL-Div > 3", "n-eff = 1 \n KL-Div ~ 0")), ncol = 3) +
+  facet_wrap(vars(fct_relevel(div_group, "n-eff > 1.5 \n KL-Div < 0.5", "KL-Div > 5", "n-eff = 1 \n KL-Div ~ 0")), ncol = 3) +
   scale_fill_manual(
     values = fills,
     labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
@@ -698,13 +698,13 @@ aa_dist_plot <- for_barplot_2 %>%
 
 aa_dist_plot
 
-ggsave(filename = "./analysis/figures/aa_dist_kl_bins.png", plot = aa_dist_plot, width = 13, height = 9)
+ggsave(filename = "./analysis/figures/aa_dist_kl_bins.png", plot = aa_dist_plot, width = 10, height = 6)
 
 aa_dist_plot_2 <- for_barplot_2 %>%
   filter(div_group != "n-eff = 1 \n KL-Div ~ 0") %>%
   ggplot(aes(x = freq, y = wt, fill = class)) +
   geom_col(alpha = 0.75) +
-  facet_wrap(vars(fct_relevel(div_group, "n-eff > 1.5 \n KL-Div < 0.5", "KL-Div > 3")), ncol = 2) +
+  facet_wrap(vars(fct_relevel(div_group, "n-eff > 1.5 \n KL-Div < 0.5", "KL-Div > 5")), ncol = 2) +
   scale_fill_manual(
     values = fills,
     labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
@@ -726,7 +726,7 @@ aa_dist_plot_2 <- for_barplot_2 %>%
 
 aa_dist_plot_2
 
-ggsave(filename = "./analysis/figures/aa_dist_kl_bins_2.png", plot = aa_dist_plot_2, width = 10, height = 9)
+ggsave(filename = "./analysis/figures/aa_dist_kl_bins_2.png", plot = aa_dist_plot_2, width = 10, height = 6)
 
 #---------------------------------------------------------------------------------------------------------------------
 # ok, I now need to make these same bar charts, only with secondary structure, instead of amino acids.
@@ -745,7 +745,7 @@ with_struc <- new_data %>%
          second_struc = ifelse(second_struc == "310Helix" | second_struc == "PiHelix", "Noncanon. helix", second_struc))
   
 
-# finds the count of each aa acid per bin:
+# finds the count of each structure per bin:
 struc_counts <- with_struc %>%
   select(c(gene, position, second_struc, div_group)) %>%
   group_by(div_group) %>%
@@ -760,6 +760,32 @@ for_barplot <- struc_counts %>%
   group_by(div_group) %>%
   mutate(bin_count = sum(struc_count)) %>%
   ungroup()
+
+# quick barplot with counts:
+counts_table <- tibble(bin = c("n-eff > 1.5 \n KL-Div < 0.5", "KL-Div > 5", "n-eff = 1 \n KL-Div ~ 0"), 
+                       count = c(1471, 1393, 136))
+counts_plot <- counts_table %>%
+  ggplot(aes(x = fct_relevel(bin, "n-eff > 1.5 \n KL-Div < 0.5", "KL-Div > 5", "n-eff = 1 \n KL-Div ~ 0"), y = count)) +
+  geom_col(fill = "#988981", color = "#70635c", alpha = 0.8) +
+  geom_text(aes(label = count, vjust = -0.25)) +
+  scale_x_discrete(
+    name = "") + 
+  scale_y_continuous(
+    name = "Count",
+    limits = c(0, 1550),
+    breaks = seq(0, 1400, by = 200),
+    expand = c(0, 0)) +
+  theme_cowplot(14)+
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.y = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.y = element_line(color = "grey92", size=0.5)
+  )
+  
+counts_plot
+
+ggsave(filename = "./analysis/figures/kl_bin_counts.png", plot = counts_plot, width = 5.5, height = 4)
 
 
 for_barplot_2 <- for_barplot %>%
@@ -776,7 +802,7 @@ struc_fills = c("#bf8040", "#ac5396", "#70adc2", "#748f3d", "#cc5933", "#7070c2"
 struc_dist_plot <- for_barplot_2 %>%
   ggplot(aes(x = freq, y = second_struc, fill = second_struc)) +
   geom_col(alpha = 0.9) +
-  facet_wrap(vars(fct_relevel(div_group, "n-eff > 1.5 \n KL-Div < 0.5", "KL-Div > 3", "n-eff = 1 \n KL-Div ~ 0")), ncol = 3) +
+  facet_wrap(vars(fct_relevel(div_group, "n-eff > 1.5 \n KL-Div < 0.5", "KL-Div > 5", "n-eff = 1 \n KL-Div ~ 0")), ncol = 3) +
   scale_fill_manual(
     values = struc_fills) +
   scale_x_continuous(
@@ -801,16 +827,43 @@ struc_dist_plot
 ggsave(filename = "./analysis/figures/struc_dist_kl_bins.png", plot = struc_dist_plot, width = 10, height = 5)
 
 #====================================================================================
-# Let's now look at the distrubution of mispredicted sites across secondary structure
+# Let's now look at the distribution of mispredicted sites across secondary structure
 #====================================================================================
 
-#start with final_2
+#Now lets also add the predicted amino acid to this dataframe. 
+
+cnn_data <- read.csv(file = "./data/PSICOV_box_20/output/cnn_wt_max_freq.csv", header=TRUE, sep=",")
+
+predicted <- cnn_data %>%
+  select(c(gene, group, position, aa)) %>%
+  pivot_wider(names_from = group, values_from = aa)
+
+#get the wt freq:
+
+predicted_2 <- cnn_data %>%
+  select(c(gene, group, position, freq)) %>%
+  pivot_wider(names_from = group, values_from = freq) %>%
+  select(gene, position, wt) %>%
+  rename(pred_wt = wt)
+
+predicted_final <- inner_join(predicted, predicted_2)
+
+# run code at top of script to get with_d_kls
+final <- inner_join(with_d_kl, predicted_final) %>%
+  select(-wt_aa) %>%
+  mutate(diff = round((n_eff_cnn - n_eff_nat), 3))
+
+final_2 <- final %>%
+  rowwise() %>%
+  mutate(n_eff_group = get_neff_group(as.numeric(n_eff_cnn), as.numeric(n_eff_nat))) %>%
+  mutate(facet_group = ifelse(n_eff_group == "pred=nat \n nat not 1" | n_eff_group == "pred=nat \n nat = 1", "pred = nat", "pred ≠ nat"))
+
 
 mispred <- final_2 %>%
-  filter(predicted != wt)
+  filter(predicted != wt & pred_wt < 0.1)
 
 
-with_struc2 <- mispred %>%
+with_struc1 <- mispred %>%
   inner_join(sec_struc) %>%
   mutate(second_struc = ifelse(second_struc == "Coil", "Random coil", second_struc),
          second_struc = ifelse(second_struc == "Strand", "Beta strand", second_struc),
@@ -818,40 +871,35 @@ with_struc2 <- mispred %>%
          second_struc = ifelse(second_struc == "310Helix" | second_struc == "PiHelix", "Noncanon. helix", second_struc))
 
 # finds the count of each aa acid per bin:
-struc_counts <- with_struc %>%
+struc_counts1 <- with_struc1 %>%
   select(c(gene, position, second_struc)) %>%
   count(second_struc) %>%
   mutate(struc_count = n) %>%
   select(-n) 
 
 
-
 # now I need to add up all aa within each (normaized!!!) bin to get bin totals and append this to the aa_counts
-for_barplot <- struc_counts %>%
-  mutate(total_count = rowSums(across(struc_count)))
+for_barplot_1 <- struc_counts1 %>%
+  ungroup() %>%
+  mutate(total_count = sum(struc_count)) 
 
 
-for_barplot_2 <- for_barplot %>%
-  mutate(freq = struc_count/bin_count) %>%
-  select(-c(struc_count, bin_count)) %>%
-  mutate(second_struc = fct_rev(fct_relevel(second_struc, "Alpha helix", "Beta strand", "Turn", "Random coil", "Noncanon. helix", "Bridge")))
-
-# figuring out the order for the first facet:
-order <- for_barplot_2 %>%
-  filter(div_group == "n-eff > 1.5 \n KL-Div < 0.5")
+for_barplot_2 <- for_barplot_1 %>%
+  mutate(freq = struc_count/total_count) %>%
+  select(-c(struc_count, total_count)) %>%
+  mutate(second_struc = fct_rev(fct_relevel(second_struc, "Alpha helix", "Random coil", "Turn", "Beta strand", "Noncanon. helix", "Bridge")))
 
 struc_fills = c("#bf8040", "#ac5396", "#70adc2", "#748f3d", "#cc5933", "#7070c2")
 
-struc_dist_plot <- for_barplot_2 %>%
+struc_mispr_plot <- for_barplot_2 %>%
   ggplot(aes(x = freq, y = second_struc, fill = second_struc)) +
   geom_col(alpha = 0.9) +
-  facet_wrap(vars(fct_relevel(div_group, "n-eff > 1.5 \n KL-Div < 0.5", "KL-Div > 3", "n-eff = 1 \n KL-Div ~ 0")), ncol = 3) +
   scale_fill_manual(
     values = struc_fills) +
   scale_x_continuous(
-    name = "Frequency",
-    limits = c(0.0, 0.45),
-    breaks = seq(0.0, 0.40, by = 0.1),
+    name = "Frequency of secondary structure \n at mispredicted positions",
+    limits = c(0.0, 0.34),
+    breaks = seq(0.0, 0.35, by = 0.05),
     expand = c(0, 0)) + 
   scale_y_discrete(
     name = "Secondary structure",
@@ -865,9 +913,127 @@ struc_dist_plot <- for_barplot_2 %>%
     panel.spacing = unit(2, "lines"),
     legend.position = "none")
 
-struc_dist_plot
+struc_mispr_plot
 
-ggsave(filename = "./analysis/figures/struc_dist_kl_bins.png", plot = struc_dist_plot, width = 10, height = 5)
+ggsave(filename = "./analysis/figures/struc_dist_mispr_engineer.png", plot = struc_mispr_plot, width = 6, height = 5)
 
+#--------------------------------------------------------------------------------------
+#now, lets looks at the distribution of correct predictions
+
+cor_pred <- final_2 %>%
+  filter(predicted == wt)
+
+with_struc2 <- cor_pred %>%
+  inner_join(sec_struc) %>%
+  mutate(second_struc = ifelse(second_struc == "Coil", "Random coil", second_struc),
+         second_struc = ifelse(second_struc == "Strand", "Beta strand", second_struc),
+         second_struc = ifelse(second_struc == "AlphaHelix", "Alpha helix", second_struc),
+         second_struc = ifelse(second_struc == "310Helix" | second_struc == "PiHelix", "Noncanon. helix", second_struc))
+
+# finds the count of each aa acid per bin:
+struc_counts2 <- with_struc2 %>%
+  select(c(gene, position, second_struc)) %>%
+  count(second_struc) %>%
+  mutate(struc_count = n) %>%
+  select(-n) 
+
+
+# now I need to add up all aa within each (normaized!!!) bin to get bin totals and append this to the aa_counts
+for_barplot3 <- struc_counts2 %>%
+  ungroup() %>%
+  mutate(total_count = sum(struc_count)) 
+
+
+for_barplot_3 <- for_barplot3 %>%
+  mutate(freq = struc_count/total_count) %>%
+  select(-c(struc_count, total_count)) %>%
+  mutate(second_struc = fct_rev(fct_relevel(second_struc, "Alpha helix", "Random coil", "Turn", "Beta strand", "Noncanon. helix", "Bridge")))
+
+struc_fills = c("#bf8040", "#ac5396", "#70adc2", "#748f3d", "#cc5933", "#7070c2")
+
+cor_pred_plot <- for_barplot_3 %>%
+  ggplot(aes(x = freq, y = second_struc, fill = second_struc)) +
+  geom_col(alpha = 0.9) +
+  scale_fill_manual(
+    values = struc_fills) +
+  scale_x_continuous(
+    name = "Frequency of secondary structure \n where wild type was predicted",
+    limits = c(0.0, 0.34),
+    breaks = seq(0.0, 0.35, by = 0.05),
+    expand = c(0, 0)) + 
+  scale_y_discrete(
+    name = "Secondary structure",
+    expand = c(0.03, 0.03)) + 
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"),
+    legend.position = "none")
+
+cor_pred_plot
+
+ggsave(filename = "./analysis/figures/struc_cor_predictions.png", plot = cor_pred_plot, width = 6, height = 5)
+
+figure_final <- plot_grid(struc_mispr_plot, cor_pred_plot, ncol = 2, align = "h", labels = c('a', 'b'), rel_widths = c(1, 1))
+
+ggsave(filename = paste("./analysis/figures/mispr_to_cor_pred.png"), plot = figure_final, width = 13, height = 6)
+
+#----------------------------------------------------------------------------------------
+# getting the odds ratio of mispredictions to correct predictions (secondary structures)
+mispredictions <- for_barplot_2 %>%
+  rename(freq_mispr = freq)
+
+cor_predictions <- for_barplot_3 %>%
+  rename(freq_cor = freq)
+
+for_odds <- inner_join(mispredictions, cor_predictions)
+
+for_odds2 <- for_odds %>%
+  mutate(odds = freq_mispr/freq_cor)
+
+plot_odds <- for_odds2 %>%
+  ggplot(aes(x = odds, y = second_struc, fill = second_struc)) +
+  geom_col(alpha = 0.9) +
+  geom_text(aes(label = round(odds, 2), hjust = -0.05)) +
+  scale_fill_manual(
+    values = struc_fills) +
+  scale_x_log10(
+    name = "Odds ratio (log scale)"
+  ) +
+  scale_y_discrete(
+    name = "Secondary structure",
+    expand = c(0.03, 0.03)) + 
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"),
+    legend.position = "none")
+
+plot_odds
+
+ggsave(filename = "./analysis/figures/struc_odds.png", plot = plot_odds, width = 9, height = 5)
+
+
+#doing some tests with KL-div
+get_D_KL <- function(y, x) {
+  sum <- 0
+  for (i in 1:20) { 
+    y[i] = y[i] + 1e-20 # the KL-div statistic can't be calculated when y is as zero
+    x[i] = x[i] + 1e-20
+    if (x[i] != 0 & y[i] != 0) {
+      sum = sum + x[i] * log(x[i]/y[i])
+    }
+    if (x[i] != 0 & y[i] == 0) {
+      sum = sum + x[i] * log(x[i]/y[i])
+    }
+  }
+  return(sum)
+}
 
 
