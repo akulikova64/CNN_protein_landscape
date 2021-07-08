@@ -178,8 +178,8 @@ plot_train <- freqs %>%
     labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
   scale_x_continuous(
     name = "Frequency",
-    limits = c(0.0, 0.12),
-    breaks = seq(0.0, 0.12, by = 0.03),
+    limits = c(0.0, 0.21),
+    breaks = seq(0.0, 0.20, by = 0.05),
     expand = c(0, 0)) + 
   scale_y_discrete(
     name = "Amino acid in training data",
@@ -190,7 +190,8 @@ plot_train <- freqs %>%
     strip.text.x = element_text(size = 16),
     panel.grid.major.x = element_line(color = "grey92", size=0.5),
     panel.grid.minor.x = element_line(color = "grey92", size=0.5),
-    panel.spacing = unit(2, "lines"))
+    panel.spacing = unit(2, "lines"),
+    legend.position = "none")
 
 plot_train
 
@@ -311,12 +312,11 @@ plot_g <- for_barplot_3 %>%
     strip.text.x = element_text(size = 16),
     panel.grid.major.x = element_line(color = "grey92", size=0.5),
     panel.grid.minor.x = element_line(color = "grey92", size=0.5),
-    panel.spacing = unit(2, "lines"),
-    legend.position = "none")
+    panel.spacing = unit(2, "lines"))
 
 plot_g
 
-figure_final <- plot_grid(plot_e, plot_g, plot_train, nrow = 1, align = "h", labels = c('a', 'b', 'c'), rel_widths = c(1, 1, 1.5))
+figure_final <- plot_grid(plot_e, plot_train, plot_g, nrow = 1, align = "h", labels = c('a', 'b', 'c'), rel_widths = c(1, 1, 1.5))
 
 ggsave(filename = paste("./analysis/figures/aa_dist_unnorm.png"), plot = figure_final, width = 11, height = 9)
 
@@ -348,10 +348,10 @@ plot_odds <- for_odds_2 %>%
   scale_fill_manual(
     values = fills,
     labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
-  scale_x_continuous(
+  scale_x_log10(
     name = "Predicted frequency over \n natural frequency",
-    limits = c(0, 3.75),
-    breaks = seq(0, 4, by = 0.5),
+    #limits = c(0, 3.5),
+    #breaks = seq(0, 3, by = 0.5),
     expand = c(0, 0)) + 
   scale_y_discrete(
     name = "Amino acid",
@@ -369,3 +369,11 @@ plot_odds
 
 ggsave(filename = paste("./analysis/figures/aa_dist_odds.png"), plot = plot_odds, width = 6.5, height = 9)
 
+#--------------------------------------------------------------------------------------
+# Let's find the correlations between a and b then a and c
+
+#my three dataframes:
+
+freqs # training data frequencies
+for_barplot_2 # predicted frequencies
+for_barplot_3 # natural frequencies

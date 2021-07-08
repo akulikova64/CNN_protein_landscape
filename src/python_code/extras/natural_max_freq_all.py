@@ -3,15 +3,34 @@ import shutil
 import csv
 import sys
 
-def getMax(list):
+def getMax(list, gene, position):
   aaList = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]  
   ind = 0
   max = 0
+
   for i in range(0,len(list)):
     if(float(list[i]) > max):
       ind = i
       max = float(list[i])
 
+  # now just looking for ties with the detected maximum
+  aa_tie_list = []
+  tie_count = 0
+
+  for i in range(0, len(list)):
+    current = float(list[i])
+    if(round(current, 5) == round(max, 5)):
+      tie_count += 1
+      aa_tie_list.append(str(aaList[i]))
+
+  '''if(tie_count > 1):
+
+    print(str(gene), "position:", str(position))
+    print("max_freq:", str(round(max, 5)))
+    print("tie count:", str(tie_count - 1)) # not counting the first highest amino acid freq found
+    print("tied aa's:", str(aa_tie_list))
+    print()'''
+  
   return [aaList[ind], max]
 
 def getMax_class(list):
@@ -97,7 +116,7 @@ for box_size in box_size_list:
         
         # 'position,gene,q_A,q_R,q_N,q_D,q_C,q_Q,q_E,q_G,q_H,q_I,q_L,q_K,q_M,q_F,q_P,q_S,q_T,q_W,q_Y,q_V,entropy,n_eff,q_aliphatic,q_polar,q_positive,q_negative,q_aromatic,q_proline,entropy_class,n_eff_class
 
-        res = getMax(row[2:22]) # aa freq
+        res = getMax(row[2:22], gene, position) # aa freq
         aa = res[0]
         freq = res[1]
 
@@ -122,7 +141,56 @@ for box_size in box_size_list:
             wt_aa_class, wt_class_freq = get_aa_class(aa, class_freqs = row[24:30])
             writer.writerow([gene, group, position, aa, freq, wt_aa_class, wt_class_freq])
           else:
-            print(str(gene) + " " + str(position))
+            continue
+            #print(str(gene), str(position), "position not in both cnn and MSA")
         except KeyError:
-          print(gene)
+          continue
+          #print(gene, "gene not found")
         # group = "natural_neff"
+
+
+#supplementary info: counting the number ot ties:
+
+def get_ties(list, gene, position):
+  aaList = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]  
+  ind = 0
+  max = 0
+
+  for i in range(0,len(list)):
+    if(float(list[i]) > max):
+      ind = i
+      max = float(list[i])
+
+  # now just looking for ties with the detected maximum
+  aa_tie_list = []
+  tie_count = 0
+
+  for i in range(0, len(list)):
+    current = float(list[i])
+    if(round(current, 5) == round(max, 5)):
+      tie_count += 1
+      aa_tie_list.append(str(aaList[i]))
+  
+  return [gene, position, aa_tie_list, (tie_count - 1), round(max, 5)]
+
+for box_size in box_size_list:
+  output_txt = "../../../data/PSICOV_box_" + box_size + "/output/consensus_ties.csv" 
+  with open(output_txt, "w", newline='\n', encoding='utf-8') as CSV_file:
+    writer = csv.writer(CSV_file)
+    writer.writerow(['gene', 'position', 'aa_list', 'tie_count', 'freq'])
+
+    # reading the alignment freq file
+    with open(input_path_2, "r", newline='\n', encoding='utf-8') as CSV_file:
+      csv_reader = csv.reader(CSV_file, delimiter=',')
+      for row in csv_reader:
+        if row[0] == 'position': # skipping header
+          continue
+
+        #*************
+        # natural_max
+        #*************
+        gene = row[1]
+        position = row[0]
+        
+        res = get_ties(row[2:22], gene, position) # aa freq
+        writer.writerow([res[0], res[1], res[2], res[3], res[4]])

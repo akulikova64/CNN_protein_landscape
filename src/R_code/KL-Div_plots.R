@@ -726,7 +726,38 @@ aa_dist_plot_2 <- for_barplot_2 %>%
 
 aa_dist_plot_2
 
-ggsave(filename = "./analysis/figures/aa_dist_kl_bins_2.png", plot = aa_dist_plot_2, width = 10, height = 6)
+summary_plot_2 <- for_barplot_2 %>%
+  filter(div_group != "n-eff = 1 \n KL-Div ~ 0") %>% 
+  mutate(group = ifelse(wt %in% c("M", "L", "I", "V", "A", "H", "Y", "W", "F"), "non-polar", NA)) %>%
+  mutate(group = ifelse(wt %in% c("C", "S", "T", "N", "Q", "D", "E", "R", "K"), "polar", group)) %>%
+  group_by(group, div_group) %>%
+  summarise(freq = sum(freq)) %>%
+  na.omit() %>%
+  ggplot(aes(x = freq, y = group, fill = group)) +
+  geom_col(alpha = 0.75) +
+  facet_wrap(vars(fct_relevel(div_group, "n-eff > 1.5 \n KL-Div < 0.5", "KL-Div > 5")), ncol = 2) +
+  scale_fill_manual(
+    values = fills,
+    labels = c("non-polar", "polar")) +
+  scale_x_continuous(
+    name = "Frequency",
+    limits = c(0.0, 0.75),
+    breaks = seq(0.0, 0.70, by = 0.1),
+    expand = c(0, 0)) +
+  scale_y_discrete(
+    name = "Predicted category",
+    expand = c(0.03, 0.03)) + 
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"))
+
+summary_plot_2
+
+ggsave(filename = "./analysis/figures/aa_dist_kl_bins_hydroph_polar.png", plot = summary_plot_2, width = 10, height = 6)
 
 #---------------------------------------------------------------------------------------------------------------------
 # ok, I now need to make these same bar charts, only with secondary structure, instead of amino acids.
@@ -1021,9 +1052,9 @@ ggsave(filename = "./analysis/figures/struc_odds.png", plot = plot_odds, width =
 
 
 #doing some tests with KL-div
-get_D_KL <- function(y, x) {
+test_get_D_KL <- function(y, x) {
   sum <- 0
-  for (i in 1:20) { 
+  for (i in 1:6) { 
     y[i] = y[i] + 1e-20 # the KL-div statistic can't be calculated when y is as zero
     x[i] = x[i] + 1e-20
     if (x[i] != 0 & y[i] != 0) {
@@ -1036,4 +1067,8 @@ get_D_KL <- function(y, x) {
   return(sum)
 }
 
+dist1 <- c(0.1,  0.9,  0,  0,  0,  0) #natural
+dist2 <- c(0,  0.2,  0.3,  0,  0.1,  0.4) #cnn
+
+test_D_KL <- test_get_D_KL(as.numeric(dist1), as.numeric(dist2))
 

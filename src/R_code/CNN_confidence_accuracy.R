@@ -353,6 +353,37 @@ plot_e <- for_barplot_2 %>%
 
 plot_e
 
+plot_summarised_e <- for_barplot_2 %>%
+  mutate(group = ifelse(aa_predicted %in% c("G", "P", "I", "A", "V", "L", "F", "M", "W"), "hydrophobic", NA)) %>%
+  mutate(group = ifelse(aa_predicted %in% c("C", "S", "T", "N", "Q", "D", "E", "R", "K"), "polar", group)) %>%
+  group_by(group) %>%
+  summarise(freq = sum(freq)) %>%
+  na.omit() %>%
+  ggplot(aes(x = freq, y = group, fill = group)) +
+  geom_col(alpha = 0.75) +
+  #facet_wrap(vars(fct_relevel(pred_bin, "Predicted at 80-100% confidence", "Predicted at 0-20% confidence")), ncol = 1) +
+  scale_fill_manual(
+    values = fills,
+    labels = c("hydrophobic", "polar")) +
+  scale_x_continuous(
+    name = "Frequency",
+    limits = c(0.0, 0.75),
+    breaks = seq(0.0, 0.70, by = 0.1),
+    expand = c(0, 0)) +
+  scale_y_discrete(
+    name = "Predicted category",
+    expand = c(0.03, 0.03)) + 
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"),
+    legend.position = "none")
+
+plot_summarised_e
+
 ggsave(filename = "./analysis/figures/Pred_aa_freq.png", plot = plot_e, width = 8, height = 8)
 
 #===============================================================================================
@@ -698,11 +729,49 @@ plot_h <- for_barplot_4 %>%
 
 plot_h
 
+plot_summarised_h <- for_barplot_4 %>%
+  mutate(group = ifelse(aa_natural_max %in% c("G", "P", "I", "A", "V", "L", "F", "M", "W"), "hydrophobic", NA)) %>%
+  mutate(group = ifelse(aa_natural_max %in% c("C", "S", "T", "N", "Q", "D", "E", "R", "K"), "polar", group)) %>%
+  group_by(group) %>%
+  summarise(freq = sum(freq)) %>%
+  na.omit() %>%
+  ggplot(aes(x = freq, y = fct_relevel(group, "hydrophobic", "polar"), fill = group)) +
+  geom_col(alpha = 0.75) +
+  #facet_wrap(vars(fct_relevel(pred_bin, "Predicted at 80-100% confidence", "Predicted at 0-20% confidence")), ncol = 1) +
+  scale_fill_manual(
+    values = fills,
+    labels = c("hydrophobic", "polar")) +
+  scale_x_continuous(
+    name = "Frequency",
+    limits = c(0.0, 0.75),
+    breaks = seq(0.0, 0.70, by = 0.1),
+    expand = c(0, 0)) +
+  scale_y_discrete(
+    name = "Predicted category",
+    expand = c(0.03, 0.03)) + 
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"),
+    legend.position = "none")
+
+plot_summarised_h
+
 ggsave(filename = "./analysis/figures/cons_aa_dist.png", plot = plot_h, width = 11, height = 8)
 
 figure_final <- plot_grid(plot_e, plot_h, plot_train, nrow = 1, align = "h", labels = c('a', 'b', 'c'), rel_widths = c(1, 1, 1.5))
 
 ggsave(filename = paste("./analysis/figures/aa_dist_CNN_conf_natural.png"), plot = figure_final, width = 11, height = 9)
+
+#saving figure with hydrophobic and polar results:
+figure_final2 <- plot_grid(plot_summarised_e, plot_summarised_h, nrow = 1, align = "h", labels = c('a', 'b'), rel_widths = c(1, 1))
+
+ggsave(filename = paste("./analysis/figures/polar_hydroph.png"), plot = figure_final2, width = 10, height = 3.5)
+
+
 
 #=====================================================================================
 # Natural N-eff distribution as a function of CNN confidence bins
@@ -1117,6 +1186,22 @@ bar_plot <- for_bar %>%
 bar_plot
 
 ggsave(filename = "./analysis/figures/positions_per_CNN_mispred.png", plot = bar_plot, width = 9, height = 5)
+
+#looking at what percent on mispredictions are never found in nature.
+
+never_found <- for_plot %>%
+  mutate(found = ifelse(nat_freq == 0.0, "not found", "found"),
+         rare = ifelse(nat_freq < 0.05, "rare", "not rare"),
+         common = ifelse(nat_freq > 0.50, "common", "not common")) %>%
+  group_by(pred_bin) %>%
+  summarise(freq_found = sum(found == "not found")/n(),
+            freq_rare = sum(rare == "rare")/n(),
+            freq_common = sum(common == "common")/n()) #%>%
+  #pivot_longer(cols = c(freq_found, freq_rare), names_to = group, values_to = freq)
+
+found_plot <- never_found %>%
+  ggplot(aes(x = pred_bin), )
+
 
 # now doing a correlation test between the two variables. 
 cor<- mismatches2 %>%
