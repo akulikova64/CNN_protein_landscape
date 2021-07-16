@@ -191,8 +191,8 @@ plot_train <- freqs %>%
     strip.text.x = element_text(size = 16),
     panel.grid.major.x = element_line(color = "grey92", size=0.5),
     panel.grid.minor.x = element_line(color = "grey92", size=0.5),
-    panel.spacing = unit(2, "lines"),
-    legend.position = "none")
+    panel.spacing = unit(2, "lines"))
+    #legend.position = "none")
 
 plot_train
 
@@ -317,9 +317,13 @@ plot_g <- for_barplot_3 %>%
 
 plot_g
 
-figure_final <- plot_grid(plot_e, plot_train, plot_g, nrow = 1, align = "h", labels = c('a', 'b', 'c'), rel_widths = c(1, 1, 1.5))
+#figure_final <- plot_grid(plot_e, plot_train, plot_g, nrow = 1, align = "h", labels = c('a', 'b', 'c'), rel_widths = c(1, 1, 1.5))
 
-ggsave(filename = paste("./analysis/figures/aa_dist_unnorm.png"), plot = figure_final, width = 11, height = 9)
+#ggsave(filename = paste("./analysis/figures/aa_dist_unnorm.png"), plot = figure_final, width = 11, height = 9)
+
+figure_for_present <- plot_grid(plot_e, plot_train, nrow = 1, align = "h", labels = c('a', 'b'), rel_widths = c(1, 1.5))
+ggsave(filename = paste("./analysis/figures/aa_dist_present.png"), plot = figure_for_present, width = 11, height = 9)
+
 
 #===============================================================================================
 #  ODDS RATIO amino acid distributions within their MSA frequency bins

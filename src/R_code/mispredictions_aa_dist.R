@@ -66,24 +66,24 @@ aa_counts <- mismatches %>%
   ungroup()
 
 # getting aa fractions in the wild type structures (# alanines/ # total sites)
-wt_fract <- wide %>%
-  select(gene, position, aa_wt) %>%
-  na.omit() %>%
-  group_by(aa_wt) %>%
-  count() %>%
-  ungroup() 
+# wt_fract <- wide %>%
+#   select(gene, position, aa_wt) %>%
+#   na.omit() %>%
+#   group_by(aa_wt) %>%
+#   count() %>%
+#   ungroup() 
 
 
 # normalizing the aa count per bin: 
 # multiplying the aa count per bin by the total fraction of that amino acid in the wt structures:
-aa_counts_norm <- aa_counts %>%
-  left_join(wt_fract) %>%
-  mutate(norm_count = aa_count/n) %>%
-  select(-c(aa_count, n))
+# aa_counts_norm <- aa_counts %>%
+#   left_join(wt_fract) %>%
+#   mutate(norm_count = aa_count/n) %>%
+#   select(-c(aa_count, n))
 
 # now I need to add up all aa within each (normaized!!!) bin to get bin totals and append this to the aa_counts
-for_barplot <- aa_counts_norm %>%
-  mutate(total_count = sum(norm_count)) %>%
+for_barplot <- aa_counts %>%
+  mutate(total_count = sum(aa_count)) %>%
   ungroup()
 
 # adding the class labels
@@ -91,9 +91,9 @@ with_classes <- for_barplot %>%
   mutate(class = map_chr(aa_wt, calc_class))
 
 for_barplot_1 <- with_classes %>%
-  mutate(freq = norm_count/total_count) %>%
-  select(-c(norm_count, total_count)) %>%
-  mutate(aa_wt = fct_rev(fct_relevel(aa_wt, "Q", "H", "N", "M", "K", "S", "R", "T", "E", "C", "A", "D", "W", "Y", "V", "F", "I", "P", "L", "G"))) %>%
+  mutate(freq = aa_count/total_count) %>%
+  select(-c(aa_count, total_count)) %>%
+  mutate(aa_wt = fct_rev(fct_relevel(aa_wt, "K", "E", "S", "A", "Q", "R", "N", "T", "V", "D", "L", "I", "H", "M", "F", "Y", "P", "C", "W", "G"))) %>%
   mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
 
 fills <- c("#990008", "#0a2575", "#b35900", "#1a6600", "#5c0679", "#9e9e2e")
@@ -105,9 +105,9 @@ plot_a <- for_barplot_1 %>%
     values = fills,
     labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
   scale_x_continuous(
-    name = "Probability of \n being mispredicted",
-    limits = c(0.0, 0.09),
-    breaks = seq(0.0, 0.08, by = 0.02),
+    name = "Misprediction frequency",
+    limits = c(0.0, 0.11),
+    breaks = seq(0.0, 0.10, by = 0.02),
     expand = c(0, 0)) + 
   scale_y_discrete(
     name = "Wild type amino acid",
@@ -182,69 +182,61 @@ wide <- joined_data_trimmed %>%
   select(-c(aa_class, class_freq)) %>%
   pivot_wider(names_from = group, values_from = c(freq, aa)) 
 
+#filtering for correct predictions only:
+# wide <- wide %>%
+#   filter(aa_predicted == aa_wt)
+
 wide_new <- wide %>%
   na.omit() %>%
-  mutate(pred_bin = map_chr(freq_wt, get_pred_bin)) %>%
+  mutate(pred_bin = map_chr(freq_predicted, get_pred_bin)) %>%
   na.omit()
 
 new_data <- wide_new %>%
-  select(c(aa_wt, pred_bin))
+  select(c(aa_predicted, pred_bin))
 
 # finds the count of each aa acid per bin:
 aa_counts <- new_data %>%
   group_by(pred_bin) %>%
-  count(aa_wt) %>%
+  count(aa_predicted) %>%
   mutate(aa_count = n) %>%
   select(-n) %>%
   ungroup()
 
-# getting aa fractions in the wild type structures (# alanines/ # total sites)
-wt_fract <- wide %>%
-  select(gene, position, aa_wt) %>%
-  na.omit() %>%
-  group_by(aa_wt) %>%
-  count() %>%
-  ungroup() 
-  
-# normalizing the aa count per bin: 
-# multiplying the aa count per bin by the total fraction of that amino acid in the wt structures:
-aa_counts_norm <- aa_counts %>%
-  left_join(wt_fract) %>%
-  mutate(norm_count = aa_count/n) %>%
-  select(-c(aa_count, n))
 
-
-# now I need to add up all aa within each (normaized!!!) bin to get bin totals and append this to the aa_counts
-for_barplot <- aa_counts_norm %>%
+for_barplot <- aa_counts %>%
   group_by(pred_bin) %>%
-  mutate(bin_count = sum(norm_count)) %>%
+  mutate(bin_count = sum(aa_count)) %>%
   ungroup()
 
 # adding the class labels
 with_classes <- for_barplot %>%
-  mutate(class = map_chr(aa_wt, calc_class))
+  mutate(class = map_chr(aa_predicted, calc_class))
 
 for_barplot_2 <- with_classes %>%
-  mutate(freq = norm_count/bin_count) %>%
-  select(-c(norm_count, bin_count)) %>%
-  mutate(aa_wt = fct_rev(fct_relevel(aa_wt, "Q", "H", "N", "M", "K", "S", "R", "T", "E", "C", "A", "D", "W", "Y", "V", "F", "I", "P", "L", "G"))) %>%
+  mutate(freq = aa_count/bin_count) %>%
+  select(-c(aa_count, bin_count)) %>%
+  mutate(aa_predicted = fct_rev(fct_relevel(aa_predicted, "K", "E", "S", "A", "Q", "R", "N", "T", "V", "D", "L", "I", "H", "M", "F", "Y", "P", "C", "W", "G"))) %>%
   mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
 
 
+# figuring out the order for the first facet:
+order <- for_barplot_2 %>%
+  filter(pred_bin == "Predicted at 80-100% confidence")
+
+
 plot_b <- for_barplot_2 %>%
-  ggplot(aes(x = freq, y = aa_wt, fill = class)) +
+  ggplot(aes(x = freq, y = aa_predicted, fill = class)) +
   geom_col(alpha = 0.75) +
-  #facet_wrap(vars(fct_relevel(pred_bin, "Predicted at 80-100% confidence", "Predicted at 0-20% confidence")), ncol = 1) +
   scale_fill_manual(
     values = fills,
     labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
   scale_x_continuous(
-    name = "Probability of being \n predicted with high confidence",
-    limits = c(0.0, 0.165),
-    breaks = seq(0.0, 0.16, by = 0.04),
+    name = "Confident \n prediction frequency",
+    limits = c(0.0, 0.22),
+    breaks = seq(0.0, 0.20, by = 0.05),
     expand = c(0, 0)) + 
   scale_y_discrete(
-    name = "Wild type amino acid",
+    name = "Predicted amino acid",
     expand = c(0.03, 0.03)) + 
   theme_cowplot(16) +
   theme(
@@ -252,10 +244,10 @@ plot_b <- for_barplot_2 %>%
     strip.text.x = element_text(size = 16),
     panel.grid.major.x = element_line(color = "grey92", size=0.5),
     panel.grid.minor.x = element_line(color = "grey92", size=0.5),
-    panel.spacing = unit(2, "lines"),
-    legend.position = "none")
+    panel.spacing = unit(2, "lines"))
 
 plot_b
+
 
 #===============================================================================================
 #  training data amino acid distributions (b)
@@ -329,6 +321,94 @@ plot_train
 
 
 
-figure_final <- plot_grid(plot_a, plot_b, plot_train, nrow = 1, align = "h", labels = c('a', 'b', 'c'), rel_widths = c(1, 1, 1.5))
+figure_final <- plot_grid(plot_a, plot_b, nrow = 1, align = "h", labels = c('a', 'b'), rel_widths = c(1, 1.5))
 
-ggsave(filename = paste("./analysis/figures/mispredic_vs_conf_dist_wt.png"), plot = figure_final, width = 11, height = 9)
+ggsave(filename = paste("./analysis/figures/mispredic_unnorm.png"), plot = figure_final, width = 9, height = 9)
+
+#---------------------------------------------------------------------------------
+# getting odds ratio of mispredictions over correct predictions. 
+#---------------------------------------------------------------------------------
+
+#data from the natural amino acid distributions:
+mispred_data <- for_barplot_1 %>%
+  select(c(aa_wt, class, freq)) %>%
+  rename(freq_mispred = freq,
+         aa = aa_wt)
+
+# nat_data <- for_barplot_3 %>%
+#   select(c(aa_natural_max, freq)) %>%
+#   rename(aa = aa_natural_max,
+#          freq_nat = freq)
+
+#correct predictions:
+
+wide <- joined_data_trimmed %>%
+  select(-c(aa_class, class_freq)) %>%
+  pivot_wider(names_from = group, values_from = c(freq, aa)) 
+
+wide <- wide %>%
+  filter(aa_predicted == aa_wt)
+
+# finds the count of each aa acid per bin:
+aa_counts <- wide %>%
+  select(aa_predicted) %>%
+  count(aa_predicted) %>%
+  mutate(aa_count = n) %>%
+  select(-n) %>%
+  ungroup()
+
+sums <- aa_counts %>%
+  mutate(bin_count = sum(aa_count)) %>%
+  ungroup()
+
+# adding the class labels
+with_classes <- sums %>%
+  mutate(class = map_chr(aa_predicted, calc_class))
+
+freqs <- with_classes %>%
+  mutate(freq = aa_count/bin_count)
+
+pred_data <- freqs %>%
+  select(c(aa_predicted, freq)) %>%
+  rename(freq_pred = freq,
+         aa = aa_predicted)
+
+#getting odds ratio
+for_odds <- inner_join(pred_data, mispred_data)
+
+for_odds_2 <- for_odds %>%
+  mutate(ratio = freq_mispred/freq_pred) %>%
+  mutate(aa = fct_reorder(aa, ratio)) %>%
+  mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
+
+plot_odds <- for_odds_2 %>%
+  ggplot(aes(x = ratio, y = aa, fill = class)) +
+  geom_col(alpha = 0.75) +
+  scale_fill_manual(
+    values = fills,
+    labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
+  scale_x_log10(
+    name = "Mispredicted frequency over \n correctly predicted frequency",
+    #limits = c(0, 3.5),
+    #breaks = seq(0, 3, by = 0.5),
+    expand = c(0, 0)) + 
+  scale_y_discrete(
+    name = "Amino acid",
+    expand = c(0.03, 0.03)) + 
+  geom_hline(yintercept = 10.5, linetype = "dashed", color = "grey20", alpha = 0.8, size = 0.85) +
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"))
+
+plot_odds
+
+ggsave(filename = paste("./analysis/figures/aa_odds_mispred.png"), plot = plot_odds, width = 6.5, height = 9)
+
+
+
+
+
