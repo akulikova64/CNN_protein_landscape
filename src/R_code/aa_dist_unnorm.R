@@ -1,5 +1,6 @@
 library(tidyverse)
 library(cowplot)
+library(broom)
 
 #===============================================================================================
 # Looking how predicted amino acid distributions relate to CNN confidence 
@@ -330,16 +331,20 @@ pred_data <- for_barplot_2 %>%
   rename(freq_pred = freq,
          aa = aa_predicted)
 
-nat_data <- for_barplot_3 %>%
-  select(c(aa_natural_max, freq)) %>%
-  rename(aa = aa_natural_max,
-         freq_nat = freq)
+# nat_data <- for_barplot_3 %>%
+#   select(c(aa_natural_max, freq)) %>%
+#   rename(aa = aa_natural_max,
+#          freq_nat = freq)
 
-for_odds <- inner_join(pred_data, nat_data)
+train_data <- freqs %>%
+  select(c(aa, freq)) %>%
+  rename(freq_train = freq)
+
+for_odds <- inner_join(pred_data, train_data)
 
 for_odds_2 <- for_odds %>%
-  mutate(ratio = freq_pred/freq_nat) %>%
-  mutate(aa = fct_rev(fct_relevel(aa, "I", "V", "L", "F", "A", "P", "G", "D", "T", "S", "E", "W", "M", "N", "Y", "R", "C", "K", "Q", "H"))) %>%
+  mutate(ratio = freq_pred/freq_train) %>%
+  mutate(aa = fct_reorder(aa, ratio)) %>%
   mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
 
 plot_odds <- for_odds_2 %>%
@@ -349,14 +354,14 @@ plot_odds <- for_odds_2 %>%
     values = fills,
     labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
   scale_x_log10(
-    name = "Predicted frequency over \n natural frequency",
+    name = "Predicted frequency over \n training frequency",
     #limits = c(0, 3.5),
     #breaks = seq(0, 3, by = 0.5),
     expand = c(0, 0)) + 
   scale_y_discrete(
     name = "Amino acid",
     expand = c(0.03, 0.03)) + 
-  geom_hline(yintercept = 13.5, linetype = "dashed", color = "grey20", alpha = 0.8, size = 0.85) +
+  geom_hline(yintercept = 11.5, linetype = "dashed", color = "grey20", alpha = 0.8, size = 0.85) +
   theme_cowplot(16) +
   theme(
     axis.text = element_text(color = "black", size = 14),
@@ -374,6 +379,57 @@ ggsave(filename = paste("./analysis/figures/aa_dist_odds.png"), plot = plot_odds
 
 #my three dataframes:
 
-freqs # training data frequencies
-for_barplot_2 # predicted frequencies
-for_barplot_3 # natural frequencies
+# 1) training data frequencies
+training <- freqs %>%
+  select(c(aa, freq)) %>%
+  rename(training = freq)
+
+# predicted frequencies
+predicted <- for_barplot_2 %>%
+  select(c(aa_predicted, freq)) %>%
+  rename(aa = aa_predicted,
+         predicted = freq)
+
+# natural frequencies
+natural <- for_barplot_3 %>%
+  select(c(aa_natural_max, freq)) %>%
+  rename(aa = aa_natural_max,
+         natural = freq)
+
+for_cor <- inner_join(training, predicted)
+for_cor <- inner_join(for_cor, natural)
+
+# finding the p-values
+fit_1 <- lm(predicted ~ training, data = for_cor)
+
+p_value_1 <- fit %>%
+  glance(fit) %>%
+  select(p.value)
+
+#calculating the correlations:
+cor_1 <- for_cor %>%
+  summarise(cor = cor(predicted, training)) 
+
+#---------------------------------------------------------
+# now comparing the predicted to natural
+# finding the p-values
+fit_2 <- lm(predicted ~ natural, data = for_cor)
+
+p_value_2 <- fit %>%
+  glance(fit) %>%
+  select(p.value)
+
+#calculating the correlations:
+cor_2 <- for_cor %>%
+  summarise(cor = cor(predicted, natural)) 
+
+
+
+
+
+
+
+
+
+
+
