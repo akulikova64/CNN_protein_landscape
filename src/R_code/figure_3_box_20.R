@@ -158,7 +158,7 @@ legend <- twoD_legend %>%
     
 legend
 
-ggsave(filename = "./analysis/figures/legend_fig_3.png", plot = legend, width = 1, height = 1)
+#ggsave(filename = "./analysis/figures/legend_fig_3.png", plot = legend, width = 1, height = 1)
 
 # by classes:
 
@@ -205,7 +205,7 @@ plot_20_a2 <- ggplot() +
     expand = c(0,0)) +
   scale_y_discrete(
     name = "Predicted residue class",
-    label = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique"),
+    label = c("unique", "aromatic", "positive", "negative", "small polar", "aliphatic"),
     expand = c(0,0)) +
   labs(fill = "Wild type class", alpha = "Frequency") +
   theme_cowplot(font_size) +
@@ -222,7 +222,7 @@ plot_20_a2 <- ggplot() +
 
 plot_20_a2
 
-figure_3a <- plot_grid(plot_20_a1, plot_20_a2, nrow = 1, align = "h", labels = c('A', 'B'), label_x = 0)
+figure_3a <- plot_grid(plot_20_a1, plot_20_a2, nrow = 1, align = "h", labels = c('a', 'b'), label_x = 0)
 
 ggsave(filename = "./analysis/figures/figure_3a.png", plot = figure_3a, width = 10, height = 4.5)
 
@@ -268,7 +268,7 @@ plot_20_b2 <- for_plot_b2 %>%
     expand = c(0,0)) +
   scale_y_discrete(
     name = "Predicted residue class",
-    label = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique"),
+    label = c("unique", "aromatic", "positive", "negative", "small polar", "aliphatic"),
     expand = c(0,0)) +
   labs(fill = "Consensus \n class", alpha = "Frequency") +
   theme_cowplot(font_size) +
@@ -344,7 +344,7 @@ plot_20_b1 <- for_heatplot_with_classes %>%
 
 plot_20_b1
 
-figure_3abcd <- plot_grid(plot_20_a1, plot_20_a2, plot_20_b1, plot_20_b2, rel_widths = c(1, 1, 1, 1), nrow = 2, axis = "btrl", labels = c('A', 'B', 'C', 'D'), label_x = 0)
+figure_3abcd <- plot_grid(plot_20_a1, plot_20_a2, plot_20_b1, plot_20_b2, rel_widths = c(1, 1, 1, 1), nrow = 2, axis = "btrl", labels = c('a', 'b', 'c', 'd'), label_x = 0)
 ggsave(filename = "./analysis/figures/figure_3abcd.png", plot = figure_3abcd, width = 6.5, height = 6.5)
 
 

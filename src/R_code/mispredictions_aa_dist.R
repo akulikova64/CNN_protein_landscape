@@ -408,7 +408,38 @@ plot_odds
 
 ggsave(filename = paste("./analysis/figures/aa_odds_mispred.png"), plot = plot_odds, width = 6.5, height = 9)
 
+polar <- c("C", "S", "T", "N", "Q", "D", "E", "R", "K", "Y", "H")
+non_polar <- c("G", "P", "I", "A", "V", "L", "F", "M", "W")
 
+for_odds_3 <- for_odds_2 %>%
+  mutate(hydro = ifelse(aa %in% polar, "polar", "non-polar"))
+  
+plot_odds_3 <- for_odds_3 %>%
+  ggplot(aes(x = ratio, y = aa, fill = hydro)) +
+  geom_col(alpha = 0.75) +
+  scale_fill_manual(
+    values = fills) +
+    #labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
+  scale_x_log10(
+    name = "Mispredicted frequency over \n correctly predicted frequency",
+    #limits = c(0, 3.5),
+    #breaks = seq(0, 3, by = 0.5),
+    expand = c(0, 0)) + 
+  scale_y_discrete(
+    name = "Amino acid",
+    expand = c(0.03, 0.03)) + 
+  geom_hline(yintercept = 10.5, linetype = "dashed", color = "grey20", alpha = 0.8, size = 0.85) +
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"))
+
+plot_odds_3
+
+ggsave(filename = paste("./analysis/figures/aa_odds_mispred_hydro.png"), plot = plot_odds_3, width = 6.5, height = 9)
 
 
 

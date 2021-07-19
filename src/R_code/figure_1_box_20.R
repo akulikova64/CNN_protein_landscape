@@ -21,6 +21,39 @@ joined_data <- rbind(x = cnn_data, y = natural_data)
 joined_data_trimmed <- joined_data %>%
   filter(!gene %in% c('1dbx', '1eaz', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc', '2tps'))
 
+#check the number of proteins left (before and after trimming)
+count_before <- joined_data %>%
+  group_by(gene) %>%
+  summarise()
+#joined data has 149 genes
+
+count_after <- joined_data_trimmed %>%
+  group_by(gene) %>%
+  summarise()
+#trimming leaves us with 134 genes
+
+count_cnn_output <- cnn_data %>%
+  group_by(gene) %>%
+  summarise()
+#cnn output had 143 genes
+
+count_natural_data <- natural_data %>%
+  group_by(gene) %>%
+  summarise() # natural data has 149 genes before na.omit
+
+count_natural_data <- natural_data %>%
+  select(-c(class_freq, aa_class, aa)) %>%
+  pivot_wider(names_from = group, values_from = freq) %>%
+  na.omit()
+  #group_by(gene) %>%
+  #count()  #143 genes
+
+pdb_ids <- as.vector(unlist(count_natural_data$gene))
+pdb_ids
+
+count_natural_data
+# cnn output had 149 genes
+
 # check if predicted aa is the one found in the wt structure
 joined_data_wider <- joined_data_trimmed %>%
   pivot_wider(names_from = group, values_from = c(aa, freq, aa_class, class_freq))
@@ -31,6 +64,11 @@ joined_data_wider <- na.omit(joined_data_wider)
 match_wt <- joined_data_wider %>%
   mutate(match_predict_wt = aa_predicted == aa_wt) 
 
+joined_data_wider_count <- joined_data_wider %>%
+  group_by(gene) %>%
+  summarise()
+joined_data_wider_count
+
 #data entries where the predicted amino acid matches the wt
 stats_1 <- match_wt %>%
   group_by(gene) %>%
@@ -38,11 +76,20 @@ stats_1 <- match_wt %>%
   mutate(group = "predicted aa = wt aa") %>%
   mutate(x_label = "aa \n predictions")
 
+stats1_count <- stats_1 %>%
+  group_by(gene) %>%
+  summarise()
+stats1_count
+
 # now, we need to add accuracy within each class (predicted class == wt class)
 
 match_wt_class <- joined_data_wider %>%
   mutate(match_predict_wt_class = aa_class_predicted == aa_class_wt)
   
+match_wt_class_count <- match_wt_class %>%
+  group_by(gene) %>%
+  summarise()
+match_wt_class_count
   
 
 # selecting the data entries where the predicted amino acid class matches the wt aa class.
@@ -52,6 +99,10 @@ stats_2 <- match_wt_class %>%
   mutate(group = "predicted class = wt class") %>%
   mutate(x_label = "class \n predictions")
 
+stats2_count <- stats_2 %>%
+  group_by(gene) %>%
+  summarise()
+stats2_count
 
 
 joined_single_and_class <- rbind(stats_1, stats_2)
@@ -71,6 +122,12 @@ stat_data_1 <- joined_single_and_class %>%
   group_by(group) %>%
   summarise(estimate = mean(freq_predict_wt),
             std_error = sd(freq_predict_wt)/sqrt(length(freq_predict_wt)))
+
+another_count <- joined_single_and_class %>%
+  group_by(gene) %>%
+  summarise
+  
+
 
 plot_20_a <- joined_single_and_class %>%
   ggplot(aes(y = freq_predict_wt, x = group, fill = group, color = group)) +

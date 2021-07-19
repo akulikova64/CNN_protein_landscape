@@ -3,7 +3,7 @@ import shutil
 import csv
 import sys
 
-# created CSV with tidy CNN results
+# creates CSV with tidy CNN results
 
 def findMax(line):
   ind = 2
