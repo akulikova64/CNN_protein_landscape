@@ -12,7 +12,7 @@ aaCodes = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C', 'GLN':'Q', 'GL
 input_path = "../../../data/PSICOV/psicov_CIF/" #input multiple sequence aligments path
 output_path = "../../../output/output_PSICOV/solvent_accessibility.csv"
 
-#list of STRIDE files:
+#list of CIF files:
 protein_list = os.listdir(input_path)
 
 with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
@@ -41,7 +41,7 @@ with open(output_path, "w", newline='\n', encoding='utf-8') as CSV_file:
             aa = aaCodes[residue]
             sasa_abs = line[3]
             sasa_rel = line[4]
-            
+
             writer.writerow([str(gene), str(position), str(aa), str(sasa_abs), str(sasa_rel)]) 
 
 print("Saved CSV to " + output_path)
