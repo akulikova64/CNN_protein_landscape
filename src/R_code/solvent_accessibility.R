@@ -101,8 +101,16 @@ count_1
 # SASA rel_total distribution
 dens_2 <- sa_data %>%
   ggplot(aes(x = SASA_rel_total)) +
-  geom_density()
+  scale_x_continuous(
+    name = "RSA",
+    expand = c(0,0)) +
+  scale_y_continuous(
+    expand = c(0,0)) +
+  geom_density(alpha = 0.6, size = 0.4, bw = 0.02, fill = "#99a88a", color = "#4d5841") +
+  theme_cowplot()
 dens_2
+ggsave(filename = paste("./analysis/figures/RSA_density.png"), plot = dens_2, width = 6, height = 3)
+
 
 count_2 <- sa_data %>%
   ggplot(aes(x = SASA_rel_total)) +
@@ -445,6 +453,42 @@ scatter_plot
 ggsave(filename = paste("./analysis/figures/CNN_conf_vs_SA.png"), plot = scatter_plot, width = 8, height = 6)
 
 
+#-------------------------------------------------------------------------------------
+# violin plots of the pred. prob (CNN conf) by Solvent Accessibility (SA)
+#-------------------------------------------------------------------------------------
+data_summary <- function(x) {
+  m <- mean(x)
+  ymin <- m-sd(x)
+  ymax <- m+sd(x)
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
+
+violin_plot <- binned3 %>%
+  ggplot(aes(x = fct_relevel(SA_bin, "0","(0-0.025]","(0.025-0.1]","(0.1-0.2]","(0.2-0.5]","(0.3-0.4]","(0.4-0.5]","(0.5-0.6]","(0.6-0.7]","> 0.7"), y = freq_predicted)) +
+  geom_violin(alpha = 0.6, size = 0.4, bw = 0.02, fill = "#99a88a", color = "#4d5841") + 
+  stat_summary(fun.data=data_summary, color = "black", alpha = 0.7) +
+  scale_x_discrete(
+    name = "Relative Solvent Accessibiity",
+    #limits = c(0.0, 1.7),
+    #breaks = seq(0.0, 1.0, by = 0.2),
+    expand = c(0, 0)) +
+  scale_y_continuous(
+    name = "CNN confidence",
+    limits = c(0.0, 1.0),
+    breaks = seq(0.0, 1.0, by = 0.2),
+    expand = c(0, 0)) + 
+  scale_fill_binned_sequential(palette = "Teal", limits = c(0, 50)) +
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.y = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.y = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"))
+
+violin_plot
+
+ggsave(filename = paste("./analysis/figures/CNN_conf_vs_SA_bins.png"), plot = violin_plot, width = 12, height = 5)
 
 
 
