@@ -72,7 +72,6 @@ natural_var_100 <- natural_var_100 %>%
 joined_100 <- rbind(natural_var_100, cnn_var2) %>%
   mutate(perc_sim = "(80-100%]") 
 
-  
 all_joined <- rbind(joined_20, joined_40, joined_60, joined_80, joined_100)
 
 all_joined_wide <- all_joined %>%

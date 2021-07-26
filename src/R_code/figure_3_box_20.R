@@ -14,7 +14,10 @@ natural_data <- read.csv(file = "./data/PSICOV_box_20/output/natural_max_freq_fi
 
 joined_data <- rbind(x = cnn_data, y = natural_data)
 
-for_heat <- joined_data %>%
+joined_data_trimmed <- joined_data %>%
+  filter(!gene %in% c('1dbx', '1eaz', '1fvg', '1k7j', '1kq6', '1kw4', '1lpy', '1ne2', '1ny1', '1pko', '1rw1', '1vhu', '1w0h', '1wkc', '2tps'))
+
+for_heat <- joined_data_trimmed %>%
   select(group, aa, position, gene) %>%
   pivot_wider(names_from = group, values_from = aa) 
 
@@ -81,7 +84,7 @@ plot_20_a1 <- ggplot() +
   geom_tile(data = for_heatplot_with_classes, aes(x = wt, y = predicted, alpha = freq, fill = class)) + 
   scale_alpha_continuous(
     guide = guide_legend(order = 2, reverse = TRUE),
-    range = c(0.2, 1)) +
+    range = c(0.2, 1.0)) +
   scale_fill_manual(
     values = c("#991f00", "#001a66", "#994d00", "#1a6600", "#330066", "#9e9e2e"),
     guide = guide_legend(order = 1)) +
@@ -127,7 +130,7 @@ legend <- twoD_legend %>%
     guide = guide_legend(order = 1)) +
   scale_alpha_manual(
     guide = guide_legend(order = 2, reverse = TRUE),
-    values = c(0.2, 0.4, 0.6, 0.8, 1.0)) +
+    values = c(0.36, 0.52, 0.68, 0.84, 1.0)) +
   scale_x_discrete(
     name = "Amino acid class",
     position = "top",
@@ -354,11 +357,6 @@ ggsave(filename = "./analysis/figures/figure_3abcd.png", plot = figure_3abcd, wi
 figure_3 <- plot_grid(figure_3abcd, legend, nrow = 1, rel_widths = c(3, 1), scale = c(1, 0.80), labels = c('', ''))
 
 ggsave(filename = "./analysis/figures/figure_3_box_20.png", plot = figure_3, width = 9, height = 6.5)
-
-
-
-
-
 
 
 

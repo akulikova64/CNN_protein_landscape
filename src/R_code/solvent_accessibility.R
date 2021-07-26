@@ -42,17 +42,14 @@ get_SA_bin <- function(x) {
   if (x == 0.0) {
     return("0")
   }
-  if (x > 0.0 & x <= 0.025) {
-    return("(0-0.025]")
-  }
-  if (x > 0.025 & x <= 0.1) {
-    return("(0.025-0.1]")
+  if (x > 0.0 & x <= 0.1) {
+    return("(0-0.1]")
   }
   if (x > 0.1 & x <= 0.2) {
     return("(0.1-0.2]")
   }
    if (x > 0.2 & x <= 0.3) {
-     return("(0.2-0.5]")
+     return("(0.2-0.3]")
    }
   if (x > 0.3 & x <= 0.4) {
     return("(0.3-0.4]")
@@ -66,12 +63,9 @@ get_SA_bin <- function(x) {
   if (x > 0.6 & x <= 0.7) {
     return("(0.6-0.7]")
   }
-  # if (x > 0.7) {
-  #   return("> 0.7")
-  # } 
-  if (x > 1.0) {
-    return("> 1.0")
-  } 
+  if (x > 0.7) {
+    return("> 0.7")
+  }
   else {
     return(NA)
   }
@@ -103,13 +97,15 @@ dens_2 <- sa_data %>%
   ggplot(aes(x = SASA_rel_total)) +
   scale_x_continuous(
     name = "RSA",
+    limits = c(0.0, 1.67),
+    breaks = seq(0.0, 1.6, by = 0.2),
     expand = c(0,0)) +
   scale_y_continuous(
     expand = c(0,0)) +
   geom_density(alpha = 0.6, size = 0.4, bw = 0.02, fill = "#99a88a", color = "#4d5841") +
   theme_cowplot()
 dens_2
-ggsave(filename = paste("./analysis/figures/RSA_density.png"), plot = dens_2, width = 6, height = 3)
+ggsave(filename = paste("./analysis/figures/RSA_density.png"), plot = dens_2, width = 10, height = 4.5)
 
 
 count_2 <- sa_data %>%
@@ -164,7 +160,7 @@ order <- for_barplot  %>%
 plot_a <- for_barplot %>%
   ggplot(aes(x = freq, y = aa, fill = class)) +
   geom_col(alpha = 0.75) +
-  facet_wrap(vars(fct_relevel(SA_bin, "0","(0-0.025]","(0.025-0.1]","(0.1-0.2]","(0.2-0.5]","(0.3-0.4]","(0.4-0.5]","(0.5-0.6]","(0.6-0.7]","> 0.7")), ncol = 10) +
+  facet_wrap(vars(fct_relevel(SA_bin, "0","(0-0.1]","(0.1-0.2]","(0.2-0.3]","(0.3-0.4]","(0.4-0.5]","(0.5-0.6]","(0.6-0.7]","> 0.7")), ncol = 10) +
   scale_fill_manual(
     values = fills,
     labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
@@ -194,14 +190,14 @@ ggsave(filename = paste("./analysis/figures/SA_10_bins_aliph.png"), plot = plot_
 #supplementary boxplot with SA distributions per bin. 
 
 plot_b <- binned %>%
-  ggplot(aes(x = fct_relevel(SA_bin, "0","(0-0.025]","(0.025-0.1]","(0.1-0.2]","(0.2-0.5]","(0.3-0.4]","(0.4-0.5]","(0.5-0.6]","(0.6-0.7]","> 0.7"))) +
+  ggplot(aes(x = fct_relevel(SA_bin, "0","(0-0.1]","(0.1-0.2]","(0.2-0.3]","(0.3-0.4]","(0.4-0.5]","(0.5-0.6]","(0.6-0.7]","> 0.7"))) +
   geom_bar(fill = "#988981", color = "#70635c", alpha = 0.8) +
   scale_x_discrete(
-    name = "Relative Solvent Accessibiity (Å^2)") +
+    name = "Relative Solvent Accessibiity") +
   scale_y_continuous(
     name = "Count",
-    limits = c(0, 3000),
-    breaks = seq(0, 3000, by = 500),
+    limits = c(0, 6000),
+    breaks = seq(0, 5000, by = 1000),
     expand = c(0, 0)) +
   geom_text(stat = 'count', aes(label = ..count..), vjust = - 0.5) +
   theme_cowplot(14)+
@@ -394,11 +390,10 @@ for_dot_plot <- matches %>%
 
 
 dot_plot <- for_dot_plot %>%
-  ggplot(aes(x = fct_relevel(SA_bin, "0","(0-0.025]","(0.025-0.1]","(0.1-0.2]","(0.2-0.5]","(0.3-0.4]","(0.4-0.5]","(0.5-0.6]","(0.6-0.7]","> 0.7"), y = freq_predict_wt)) +
-  #geom_pointrange() +
+  ggplot(aes(x = fct_relevel(SA_bin, "0","(0-0.1]", "(0.1-0.2]", "(0.2-0.3]","(0.3-0.4]","(0.4-0.5]","(0.5-0.6]","(0.6-0.7]","> 0.7"), y = freq_predict_wt)) +
   geom_point(size = 2, color = "#2873bd") +
   scale_x_discrete(
-    name = "Relative Solvent Accessibiity (Å^2)",
+    name = "Relative Solvent Accessibiity",
     expand = c(0.05, 0.05)) + 
   scale_y_continuous(
     name = "Accuracy \n (predicting wt)",
@@ -435,7 +430,7 @@ scatter_plot <- joined_data %>%
   scale_y_continuous(
     name = "CNN confidence",
     limits = c(0.0, 1.0),
-    breaks = seq(0.0, 1.0, by = 0.2),
+    breaks = seq(0.0, 1.0, by = 0.1),
     expand = c(0, 0)) + 
   scale_fill_binned_sequential(palette = "Teal", limits = c(0, 50)) +
   theme_cowplot(16) +
@@ -489,6 +484,136 @@ violin_plot <- binned3 %>%
 violin_plot
 
 ggsave(filename = paste("./analysis/figures/CNN_conf_vs_SA_bins.png"), plot = violin_plot, width = 12, height = 5)
+
+#-------------------------------------------------------------------------------------
+# aa distribution plots comparing the high density areas in 2D histogram.
+#-------------------------------------------------------------------------------------
+
+high_conf <- binned3 %>%
+  filter(SASA_rel_total > 0.4 & SASA_rel_total < 0.8) %>%
+  filter(freq_predicted > 0.9) %>%
+  select(c(gene, position, aa_wt)) %>%
+  mutate(group = "high conf.")
+
+low_conf <- binned3 %>%
+  filter(SASA_rel_total > 0.4 & SASA_rel_total < 0.8) %>%
+  filter(freq_predicted < 0.4 & freq_predicted > 0.15) %>%
+  select(c(gene, position, aa_wt)) %>%
+  mutate(group = "low conf.")
+
+dist_data <- rbind(low_conf, high_conf)
+
+# finds the count of each aa acid per bin:
+aa_counts <- dist_data %>%
+  group_by(group) %>%
+  count(aa_wt) %>%
+  mutate(aa_count = n) %>%
+  select(-n) %>%
+  ungroup()
+
+# now I need to add up all aa within each bin to get bin totals and append this to the aa_counts
+with_sum <- aa_counts %>%
+  group_by(group) %>%
+  mutate(bin_count = sum(aa_count)) %>%
+  ungroup()
+
+# adding the class labels
+with_classes <- with_sum %>%
+  mutate(class = map_chr(aa_wt, calc_class))  
+
+for_barplot <- with_classes %>%
+  mutate(freq = aa_count/bin_count) %>%
+  select(-c(aa_count, bin_count)) %>%
+  # order base on SA = 0
+  mutate(aa_wt = fct_rev(fct_relevel(aa_wt, "G", "P",  "D", "L", "E", "K", "A", "R", "V", "I", "N", "S", "T", "F", "C", "H", "Y", "Q", "W", "M"))) %>%
+  #mutate(aa = fct_rev(fct_relevel(aa, "L", "V", "A", "I", "G", "F", "T", "S", "Y", "D", "P", "M", "N", "C", "E", "H", "Q", "W", "R", "K"))) %>%
+  # order base on SA > 50
+  #mutate(aa = fct_rev(fct_relevel(aa, "K", "E", "G", "R", "D", "P", "N", "Q", "A", "S", "T", "L", "V", "H", "M", "Y", "F", "I", "W", "C"))) %>%
+  mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
+
+
+# figuring out the order for the first facet:
+order <- for_barplot  %>%
+  filter(group == "high conf.")
+
+
+plot_high_low <- for_barplot %>%
+  ggplot(aes(x = freq, y = aa_wt, fill = class)) +
+  geom_col(alpha = 0.75) +
+  facet_wrap(vars(fct_relevel(group, "high conf.", "low conf.")), ncol = 2) +
+  scale_fill_manual(
+    values = fills,
+    labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
+  scale_x_continuous(
+    name = "Frequency",
+    limits = c(0.0, 0.50),
+    breaks = seq(0.0, 0.50, by = 0.10),
+    expand = c(0, 0)) + 
+  scale_y_discrete(
+    name = "Wild type amino acid",
+    expand = c(0.03, 0.03)) + 
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 12),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"))
+
+plot_high_low
+
+ggsave(filename = paste("./analysis/figures/SA_vs_conf.png"), plot = plot_high_low, width = 9, height = 6)
+
+#===============================================================================================
+#  ODDS RATIO of amino acid distributions (high over low conf)
+#===============================================================================================
+
+#
+low_data <- for_barplot %>%
+  filter(group == "low conf.") %>%
+  select(c(aa_wt, class, freq)) %>%
+  rename(freq_low = freq)
+
+high_data <- for_barplot %>%
+  filter(group == "high conf.") %>%
+  select(c(aa_wt, class, freq)) %>%
+  rename(freq_high = freq)
+
+for_odds <- inner_join(low_data, high_data)
+
+for_odds_2 <- for_odds %>%
+  mutate(ratio = freq_high/freq_low) %>%
+  mutate(aa_wt = fct_reorder(aa_wt, ratio)) %>%
+  mutate(class = fct_relevel(class, "aliphatic", "small_polar", "negative", "positive", "aromatic", "unique"))
+
+plot_odds <- for_odds_2 %>%
+  ggplot(aes(x = ratio, y = aa_wt, fill = class)) +
+  geom_col(alpha = 0.75) +
+  scale_fill_manual(
+    values = fills,
+    labels = c("aliphatic", "small polar", "negative", "positive", "aromatic", "unique")) +
+  scale_x_log10(
+    name = "High conf. (>0.9) over \n low conf. (>0.15, <0.4)",
+    #limits = c(0, 3.5),
+    #breaks = seq(0, 3, by = 0.5),
+    expand = c(0, 0)) + 
+  scale_y_discrete(
+    name = "Wild type amino acid",
+    expand = c(0.03, 0.03)) + 
+  geom_hline(yintercept = 15.5, linetype = "dashed", color = "grey20", alpha = 0.8, size = 0.85) +
+  theme_cowplot(16) +
+  theme(
+    axis.text = element_text(color = "black", size = 14),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major.x = element_line(color = "grey92", size=0.5),
+    panel.grid.minor.x = element_line(color = "grey92", size=0.5),
+    panel.spacing = unit(2, "lines"))
+
+plot_odds
+
+ggsave(filename = paste("./analysis/figures/SA_vs_conf_odds.png"), plot = plot_odds, width = 8, height = 9)
+
+
 
 
 
