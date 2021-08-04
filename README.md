@@ -5,7 +5,7 @@ data/ - contains raw CNN output
 
 output/ - processed alignment data
 
-analysis/ - proteomics, rna-seq, and simulation analyses and plots
+analysis/figures - contains all plots and figures
 
 src/ - R and python scripts for data processing
 
