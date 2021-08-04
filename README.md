@@ -3,7 +3,7 @@
 
 output/ - processed alignment data
 
-analysis/figures - contains all plots and figures
+analysis/figures/ - contains all plots and figures
 
 src/ - R and python scripts for data processing
 
