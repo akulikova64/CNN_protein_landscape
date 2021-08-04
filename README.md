@@ -1,5 +1,5 @@
 # Learning the local landscape of protein structures with convolutional neural networks 
-## This repository contains neural network models, all analysis and CNN code, and both processed and unprocessed data
+## This repository contains neural network models, all analysis and CNN code and all processed data.
 
 output/ - processed alignment data
 
